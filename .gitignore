@@ -1,0 +1,10 @@
+.vagrant
+.librarian
+Gemfile.lock
+Puppetfile.lock
+results
+spec/fixtures/manifests
+coverage
+.tmp/
+modules/
+.pe_build/

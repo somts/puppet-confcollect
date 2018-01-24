@@ -1,0 +1,10 @@
+fixtures:
+  forge_modules:
+    accounts: 'puppetlabs/accounts'
+    git: 'puppetlabs/git'
+    epel: 'stahnma/epel'
+    inifile: 'puppetlabs/inifile'
+    logrotate: 'puppet/logrotate'
+    python: 'stankevich-python'
+    stdlib: 'puppetlabs/stdlib'
+    vcsrepo: 'puppetlabs/vcsrepo'
