@@ -122,8 +122,8 @@ def wget_xml(config):
         myfile.close()
 
     # Commit any changes
-    git_commit = [os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'git_commit_push.py'),
-                  '-D', config.get('main', 'destination_dir')]
+    git_commit = [os.path.join(os.path.dirname(os.path.realpath(__file__)), 'git_commit_push.py'),
+                  '-D', os.path.dirname(config.get('main', 'destination_dir'))]
     proc = subprocess.Popen(git_commit, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 def main():
