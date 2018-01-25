@@ -43,9 +43,13 @@ class confcollect::config::getpfsense(
   })
 
   cron { 'getpfsense':
-    command => "${confcollect::config::_homedir}/bin/getpfsense.py",
     user    => $confcollect::owner,
     hour    => $_hour,
     minute  => $_minute,
+    command => join([
+      "${confcollect::config::_homedir}/bin/getpfsense.py",
+      ">> /var/log/${confcollect::owner}/getpfsense.log",
+      '2>&1',
+    ],' '),
   }
 }
