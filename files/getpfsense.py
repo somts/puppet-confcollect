@@ -2,11 +2,12 @@
 
 # THIS FILE MANANGED BY PUPPET.
 ''' getpfsense.py
-   pfSense config grabber. Used to keep pfSense XML config file(s)
-   up-to-date from various locations. See
-   https://doc.pfsense.org/index.php/Remote_Config_Backup#2.3.3_and_Later
-   for details. Note that we make subprocess calls to wget to minimize
-   translation from the pfSense docs.'''
+
+    pfSense config grabber. Used to keep pfSense XML config file(s)
+    up-to-date from various locations. See
+    https://doc.pfsense.org/index.php/Remote_Config_Backup#2.3.3_and_Later
+    for details. Note that we make subprocess calls to wget to minimize
+    translation from the pfSense docs.'''
 
 import tempfile
 import os
@@ -120,10 +121,15 @@ def wget_xml(config):
         myfile.write(myxml)
         myfile.close()
 
+    # Commit any changes
+    git_commit = [os.path.join(os.path.dirname(os.path.realpath(__file__)), 'git_commit_push.py'),
+                  '-D', config.get('main', 'destination_dir')]
+    proc = subprocess.Popen(git_commit, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
 def main():
     '''Main process'''
     conf = get_args()
-    xml = wget_xml(conf)
+    wget_xml(conf)
 
 if __name__ == '__main__':
     main()
