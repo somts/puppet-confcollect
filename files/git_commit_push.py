@@ -45,8 +45,7 @@ def main():
     else:
         level = logging.INFO
 
-    logging.basicConfig(filename='/dev/stdout',
-                        format='[%(levelname)s] %(asctime)s %(lineno)d %(message)s',
+    logging.basicConfig(format='[%(levelname)s] %(asctime)s %(lineno)d %(message)s',
                         level=level)
 
     msg = 'confcollect %s update from %s @ %s' % (
