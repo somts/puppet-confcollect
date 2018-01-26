@@ -47,7 +47,7 @@ class confcollect::config::getpfsense(
     hour    => $_hour,
     minute  => $_minute,
     command => join([
-      "${confcollect::config::_homedir}/bin/getpfsense.py",
+      "${confcollect::config::_homedir}/bin/getpfsense.py -v",
       ">> /var/log/${confcollect::owner}/getpfsense.log",
       '2>&1',
     ],' '),
