@@ -8,6 +8,9 @@ class confcollect(
   String $comment                         = $confcollect::params::comment,
   String $password                        = $confcollect::params::password,
   Array $packages                         = $confcollect::params::packages,
+  Boolean $enable_getscp                  = $confcollect::params::enable_getscp,
+  Boolean $enable_getpfsense
+  = $confcollect::params::enable_getpfsense,
   Optional[Array] $pip_packages           = $confcollect::params::pip_packages,
   Optional[String] $uid                   = $confcollect::params::uid,
   Optional[String] $gid                   = $confcollect::params::gid,
@@ -16,8 +19,6 @@ class confcollect(
   Optional[Stdlib::Absolutepath] $homedir = $confcollect::params::homedir,
   Optional[Stdlib::Absolutepath] $repobasedir
   = $confcollect::params::repobasedir,
-  Boolean $enable_getpfsense
-  = $confcollect::params::enable_getpfsense,
 ) inherits confcollect::params {
 
   Class['confcollect::install']-> Class['confcollect::config']

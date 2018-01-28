@@ -13,8 +13,12 @@ class confcollect::params {
   $group             = $owner
   $comment           = 'Configuration Collector Role'
   $password          = '!!'
-  $packages          = ['wget']
-  $pip_packages      = ['gitpython']
+  $packages          = $::osfamily ? {
+    'Debian' => ['wget','python-dev'],
+    'RedHat' => ['wget','python-devel'],
+    default  => ['wget'],
+  }
+  $pip_packages      = ['gitpython','netmiko','paramiko','scp']
   $uid               = undef
   $gid               = undef
   $sshkeys           = undef

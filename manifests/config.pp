@@ -32,4 +32,9 @@ class confcollect::config {
     -> Class['confcollect::config::getpfsense']
     contain confcollect::config::getpfsense
   }
+  if $confcollect::enable_getscp {
+    Class['confcollect::config::repo']
+    -> Class['confcollect::config::getscp']
+    contain confcollect::config::getscp
+  }
 }
