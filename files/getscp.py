@@ -39,7 +39,7 @@ def get_conf_via_scp(ssh_conn, router, destination_dir,
     '''Copy a remote file to a local file'''
 
     local_filename = os.path.join(os.path.realpath(destination_dir),
-                                  '%s.cfg' % router)
+                                  '%s.cfg' % router.split('.')[0])
     scp_conn = SCPConn(ssh_conn)
     scp_conn.scp_get_file(remote_filename, local_filename)
     logging.info('Configuration for %s transferred successfully.', router)
