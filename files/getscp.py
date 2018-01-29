@@ -75,7 +75,7 @@ def get_cfg(config):
             get_conf_via_scp(net_connect,
                              host,
                              config.get(host, 'destination_dir'),
-                             extension=extension
+                             extension=extension,
                              remote_filename=config.get(host,
                                                         'remote_filename'))
 
