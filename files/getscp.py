@@ -7,9 +7,9 @@
     SSH/SCP-capable config file(s) up-to-date from various locations.'''
 
 import logging
-import os
-from ConfigParser import RawConfigParser
+from ConfigParser import RawConfigParser, NoOptionError
 from argparse import ArgumentParser
+from os import path
 from subprocess import check_output
 from netmiko import ConnectHandler, SCPConn
 from netmiko.ssh_exception import NetMikoTimeoutException
@@ -27,19 +27,21 @@ def get_arguments():
 
 def read_ini():
     '''Read .ini config'''
-    myini = os.path.realpath(os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), 'etc/getscp.ini'))
+    myini = path.realpath(path.join(
+        path.dirname(path.dirname(__file__)), 'etc/getscp.ini'))
 
     conf = RawConfigParser()
     conf.read(myini)
     return conf
 
 def get_conf_via_scp(ssh_conn, router, destination_dir,
-                     remote_filename='nvram:startup-config'):
+                     remote_filename='nvram:startup-config',
+                     extension='cfg'):
     '''Copy a remote file to a local file'''
 
-    local_filename = os.path.join(os.path.realpath(destination_dir),
-                                  '%s.cfg' % router.split('.')[0])
+    local_filename = path.join(path.realpath(destination_dir),
+                                  '%s.%s' % (router.split('.')[0],
+                                             extension))
     scp_conn = SCPConn(ssh_conn)
     scp_conn.scp_get_file(remote_filename, local_filename)
     logging.info('Configuration for %s transferred successfully.', router)
@@ -55,7 +57,12 @@ def get_cfg(config):
         if host == 'main':
             continue
 
-        logging.debug('BEGIN %s', host)
+        logging.info('BEGIN %s', host)
+
+        try:
+            extension = config.get(host, extension)
+        except NoOptionError:
+            extension = 'cfg'
 
         try:
             net_connect = ConnectHandler(ip=host,
@@ -68,6 +75,7 @@ def get_cfg(config):
             get_conf_via_scp(net_connect,
                              host,
                              config.get(host, 'destination_dir'),
+                             extension=extension
                              remote_filename=config.get(host,
                                                         'remote_filename'))
 
@@ -75,14 +83,14 @@ def get_cfg(config):
             logging.error('Error with %s: %s', host, err)
             continue
 
-        logging.debug('END %s', host)
+        logging.info('END %s', host)
 
     # Commit any changes
     logging.debug('Committing changes, if any, to our git repo, %s.',
                   config.get('main', 'repo_dir'))
 
     check_output(
-        [os.path.join(os.path.dirname(os.path.realpath(__file__)),
+        [path.join(path.dirname(path.realpath(__file__)),
                       'git_commit_push.py'),
          '-D',
          config.get('main', 'repo_dir')])
