@@ -40,8 +40,7 @@ def get_conf_via_scp(ssh_conn, router, destination_dir,
     '''Copy a remote file to a local file'''
 
     local_filename = path.join(path.realpath(destination_dir),
-                                  '%s.%s' % (router.split('.')[0],
-                                             extension))
+                               '%s.%s' % (router.split('.')[0], extension))
     scp_conn = SCPConn(ssh_conn)
     scp_conn.scp_get_file(remote_filename, local_filename)
     logging.info('Configuration for %s transferred successfully.', router)
@@ -60,7 +59,7 @@ def get_cfg(config):
         logging.info('BEGIN %s', host)
 
         try:
-            extension = config.get(host, extension)
+            extension = config.get(host, 'extension')
         except NoOptionError:
             extension = 'cfg'
 
@@ -90,8 +89,7 @@ def get_cfg(config):
                   config.get('main', 'repo_dir'))
 
     check_output(
-        [path.join(path.dirname(path.realpath(__file__)),
-                      'git_commit_push.py'),
+        [path.join(path.dirname(path.realpath(__file__)), 'git_commit_push.py'),
          '-D',
          config.get('main', 'repo_dir')])
 
