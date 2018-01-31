@@ -45,7 +45,7 @@ class confcollect::config::getscp(
     hour    => $_hour,
     minute  => $_minute,
     command => join([
-      "${confcollect::config::_homedir}/bin/getscp.py -v",
+      "${confcollect::config::_homedir}/bin/getscp.py",
       ">> /var/log/${confcollect::owner}/getscp.log",
       '2>&1',
     ],' '),

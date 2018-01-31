@@ -7,8 +7,10 @@
     SSH/SCP-capable config file(s) up-to-date from various locations.'''
 
 import logging
+import multiprocessing
 from ConfigParser import RawConfigParser, NoOptionError
 from argparse import ArgumentParser
+from getpass import getuser
 from os import path
 from subprocess import check_output
 from netmiko import ConnectHandler, SCPConn
@@ -28,85 +30,113 @@ def get_arguments():
 def read_ini():
     '''Read .ini config'''
     myini = path.realpath(path.join(
-        path.dirname(path.dirname(__file__)), 'etc/getscp.ini'))
+        path.dirname(path.dirname(__file__)), 'etc', 'getscp.ini'))
 
     conf = RawConfigParser()
     conf.read(myini)
     return conf
 
-def get_conf_via_scp(ssh_conn, router, destination_dir,
-                     remote_filename='nvram:startup-config',
-                     extension='cfg'):
-    '''Copy a remote file to a local file'''
+def cfgworker(host, loglevel,
+              device_type='cisco_ios',
+              username='admin',
+              password='!!',
+              destination_dir='/tmp',
+              remote_filename='nvram:startup-config',
+              logdir='/tmp',
+              filename_extension='cfg'
+             ):
+    '''Multiprocessing worker for get_cfg()'''
+
+    logging.basicConfig(
+        filename=path.join(logdir, 'getscp.%s.log' % host),
+        format='[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+        datefmt='%H:%M:%S',
+        level=loglevel,
+    )
+
+    logging.info('BEGIN %s', host)
 
     local_filename = path.join(path.realpath(destination_dir),
-                               '%s.%s' % (router.split('.')[0], extension))
-    scp_conn = SCPConn(ssh_conn)
-    scp_conn.scp_get_file(remote_filename, local_filename)
-    logging.info('Configuration for %s transferred successfully.', router)
-    scp_conn.close()
+                               '%s.%s' % (host.split('.')[0],
+                                          filename_extension))
 
-def get_cfg(config):
-    '''Login to a device with netmiko and copy data to our repo.'''
+    try:
+        net_connect = ConnectHandler(ip=host,
+                                     device_type=device_type,
+                                     username=username,
+                                     password=password)
 
-    # Start fetching all supported configs...
+        net_connect.enable()
+        scp_conn = SCPConn(net_connect)
+        scp_conn.scp_get_file(remote_filename, local_filename)
+        logging.info('Configuration for %s transferred successfully.', host)
+        scp_conn.close()
+
+    except NetMikoTimeoutException as err:
+        logging.error('Error with %s: %s', host, err)
+
+    logging.info('END %s', host)
+
+def worker_wrapper(arg):
+    '''Take structured data and turn it into args and/or kwargs for cfgworker()'''
+    args, kwargs = arg
+    return cfgworker(*args, **kwargs)
+
+def main():
+    '''Main process'''
+    config = read_ini()
+    args = get_arguments()
+
+    if args.quiet:
+        loglevel = logging.ERROR
+    elif args.verbose:
+        loglevel = logging.DEBUG
+    else:
+        loglevel = logging.INFO
+
+    logdir = path.join('/var', 'log', getuser())
+
+    pool_size = multiprocessing.cpu_count() * 4
+    pool = multiprocessing.Pool(processes=pool_size)
+
+    # Build jobs
+    jobs = []
     for host in config.sections():
 
         # Skip main section
         if host == 'main':
             continue
 
-        logging.info('BEGIN %s', host)
-
         try:
             extension = config.get(host, 'extension')
         except NoOptionError:
             extension = 'cfg'
 
-        try:
-            net_connect = ConnectHandler(ip=host,
-                                         device_type=config.get(host,
-                                                                'device_type'),
-                                         username=config.get(host, 'username'),
-                                         password=config.get(host, 'password'))
+        # Set up structured data for worker_wrapper()
+        jobs.append(((host, loglevel), {
+            'device_type': config.get(host, 'device_type'),
+            'username': config.get(host, 'username'),
+            'password': config.get(host, 'password'),
+            'destination_dir': config.get(host, 'destination_dir'),
+            'filename_extension': extension,
+            'remote_filename': config.get(host, 'remote_filename'),
+            'logdir': logdir,
+            }))
 
-            net_connect.enable()
-            get_conf_via_scp(net_connect,
-                             host,
-                             config.get(host, 'destination_dir'),
-                             extension=extension,
-                             remote_filename=config.get(host,
-                                                        'remote_filename'))
-
-        except NetMikoTimeoutException as err:
-            logging.error('Error with %s: %s', host, err)
-            continue
-
-        logging.info('END %s', host)
+    # Start fetching all supported configs...
+    pool.map(worker_wrapper, jobs)
+    pool.close() # no more tasks
+    pool.join()  # wrap up current tasks
 
     # Commit any changes
-    logging.debug('Committing changes, if any, to our git repo, %s.',
-                  config.get('main', 'repo_dir'))
+    #logging.debug('Committing changes, if any, to our git repo, %s.',
+    #              conf.get('main', 'repo_dir'))
 
-    check_output(
-        [path.join(path.dirname(path.realpath(__file__)), 'git_commit_push.py'),
-         '-D',
-         config.get('main', 'repo_dir')])
+    #check_output(
+    #    [path.join(path.dirname(path.realpath(__file__)), 'git_commit_push.py'),
+    #     '-D',
+    #     conf.get('main', 'repo_dir')])
 
-def main():
-    '''Main process'''
-    args = get_arguments()
-    if args.quiet:
-        level = logging.ERROR
-    elif args.verbose:
-        level = logging.DEBUG
-    else:
-        level = logging.INFO
-
-    logging.basicConfig(format='[%(levelname)s] %(asctime)s %(lineno)d %(message)s',
-                        level=level)
-    conf = read_ini()
-    get_cfg(conf)
 
 if __name__ == '__main__':
     main()
