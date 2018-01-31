@@ -132,7 +132,7 @@ def main():
     check_output(
         [path.join(path.dirname(path.realpath(__file__)), 'git_commit_push.py'),
          '-D',
-         conf.get('main', 'repo_dir')])
+         config.get('main', 'repo_dir')])
 
 if __name__ == '__main__':
     main()
