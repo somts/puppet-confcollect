@@ -129,14 +129,10 @@ def main():
     pool.join()  # wrap up current tasks
 
     # Commit any changes
-    #logging.debug('Committing changes, if any, to our git repo, %s.',
-    #              conf.get('main', 'repo_dir'))
-
-    #check_output(
-    #    [path.join(path.dirname(path.realpath(__file__)), 'git_commit_push.py'),
-    #     '-D',
-    #     conf.get('main', 'repo_dir')])
-
+    check_output(
+        [path.join(path.dirname(path.realpath(__file__)), 'git_commit_push.py'),
+         '-D',
+         conf.get('main', 'repo_dir')])
 
 if __name__ == '__main__':
     main()
