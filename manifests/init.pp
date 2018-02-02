@@ -11,6 +11,8 @@ class confcollect(
   Boolean $enable_getscp                  = $confcollect::params::enable_getscp,
   Boolean $enable_getpfsense
   = $confcollect::params::enable_getpfsense,
+  Boolean $enable_getmediacento
+  = $confcollect::params::enable_getmediacento,
   Optional[Array] $pip_packages           = $confcollect::params::pip_packages,
   Optional[String] $uid                   = $confcollect::params::uid,
   Optional[String] $gid                   = $confcollect::params::gid,

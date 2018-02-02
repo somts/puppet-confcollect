@@ -37,4 +37,9 @@ class confcollect::config {
     -> Class['confcollect::config::getscp']
     contain confcollect::config::getscp
   }
+  if $confcollect::enable_getmediacento {
+    Class['confcollect::config::repo']
+    -> Class['confcollect::config::getmediacento']
+    contain confcollect::config::getmediacento
+  }
 }
