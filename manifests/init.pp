@@ -8,6 +8,8 @@ class confcollect(
   String $comment                         = $confcollect::params::comment,
   String $password                        = $confcollect::params::password,
   Array $packages                         = $confcollect::params::packages,
+  Boolean $enable_getconfs
+  = $confcollect::params::enable_getconfs,
   Boolean $enable_getscp                  = $confcollect::params::enable_getscp,
   Boolean $enable_getpfsense
   = $confcollect::params::enable_getpfsense,

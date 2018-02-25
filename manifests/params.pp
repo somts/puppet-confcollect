@@ -23,6 +23,7 @@ class confcollect::params {
   $homedir              = undef
   $repobasedir          = undef
   $enable_getpfsense    = false
+  $enable_getconfs      = false
   $enable_getscp        = false
   $enable_getmediacento = false
 }

@@ -27,6 +27,11 @@ class confcollect::config {
   contain confcollect::config::log
   contain confcollect::config::repo
 
+  if $confcollect::enable_getconfs {
+    Class['confcollect::config::repo']
+    -> Class['confcollect::config::getconfs']
+    contain confcollect::config::getconfs
+  }
   if $confcollect::enable_getpfsense {
     Class['confcollect::config::repo']
     -> Class['confcollect::config::getpfsense']

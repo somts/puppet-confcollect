@@ -19,6 +19,8 @@ class confcollect::config::files {
       * => $file_defaults + { ensure => 'directory'                 };
     "${confcollect::config::_homedir}/etc":
       * => $file_defaults + { ensure => 'directory'                 };
+    "${confcollect::config::_homedir}/lib":
+      * => $file_defaults + { ensure => 'directory'                 };
     $confcollect::config::_repobasedir :
       * => $file_defaults + { ensure => 'directory'                 };
     "${confcollect::config::_homedir}/staging":
@@ -37,5 +39,24 @@ class confcollect::config::files {
         content => $confcollect::ssh_id,
         mode    => '0600',
      };
+    "${confcollect::config::_homedir}/lib/python":
+      * => $file_defaults + {
+        ensure  => 'directory',
+        require => File["${confcollect::config::_homedir}/lib"],
+      };
+    "${confcollect::config::_homedir}/lib/python/gitcheck.py":
+      * => $file_defaults + {
+        ensure  => 'file',
+        source  => 'puppet:///modules/confcollect/gitcheck.py',
+        mode    => '0600',
+        require => File["${confcollect::config::_homedir}/lib/python"],
+      };
+    "${confcollect::config::_homedir}/lib/python/somtsfilelog.py":
+      * => $file_defaults + {
+        ensure  => 'file',
+        source  => 'puppet:///modules/confcollect/somtsfilelog.py',
+        mode    => '0600',
+        require => File["${confcollect::config::_homedir}/lib/python"],
+      };
   }
 }
