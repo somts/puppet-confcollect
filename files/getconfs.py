@@ -129,13 +129,12 @@ def main():
     logger.info('%i jobs processed.', jobs.__len__())
 
     # Commit any changes after we've attempted to collect everything
-    if args.git:
-        logger.info('Git checks enabled...')
-        for repo_dir in repo_dirs:
-            logger.info('Git checking %s.' % repo_dir)
+    for repo_dir in repo_dirs:
+        if args.git:
+            logger.info('Git checking enabled. Checking %s.' % repo_dir)
             git_check_add_commit_pull_push(repo_dir, logger)
-    else:
-        logger.info('Git checks disabled. Will not process %s', repo_dir)
+        else:
+            logger.info('Git checks disabled. Will not process %s', repo_dir)
 
 if __name__ == '__main__':
     main()
