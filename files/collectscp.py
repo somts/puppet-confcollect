@@ -22,8 +22,8 @@ def cfgworker(host, loglevel,
              ):
     '''Multiprocessing worker for get_cfg()'''
 
-    logger = setup_logger('getscp_%s' % host,
-                          path.join(log_dir, 'getscp.%s.log' % host),
+    logger = setup_logger('collectscp_%s' % host,
+                          path.join(log_dir, 'collectscp.%s.log' % host),
                           level=loglevel)
     logger.info('BEGIN %s', host)
 

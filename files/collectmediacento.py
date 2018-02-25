@@ -29,8 +29,8 @@ def cfgworker(host, loglevel,
     support.justaddpower.com/kb/article/30-device-settings-via-the-command-line
     '''
 
-    logger = setup_logger('getmediacento_%s' % host,
-                          path.join(log_dir, 'getmediacento.%s.log' % host),
+    logger = setup_logger('collectmediacento_%s' % host,
+                          path.join(log_dir, 'collectmediacento.%s.log' % host),
                           level=loglevel)
     logger.info('BEGIN %s', host)
 
