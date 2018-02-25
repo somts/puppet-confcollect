@@ -69,6 +69,8 @@ def worker_wrapper(arg):
      specialized cases too.'''
     args, kwargs = arg
 
+    kwargs.pop('repo_dir', None) # remove repo_dir from kwargs
+
     if kwargs['device_type'] == 'mediacento':
         kwargs.pop('device_type', None) # remove device_type from kwargs
         return collectmediacento.cfgworker(*args, **kwargs)
