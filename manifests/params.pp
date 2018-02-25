@@ -15,7 +15,12 @@ class confcollect::params {
   $password             = '!!'
   $packages             = ['wget']
   # In order for this to work, $python::dev must be true
-  $pip_packages         = ['gitpython','netmiko','paramiko','scp']
+  $pip_packages         = ['configparser',
+                           'gitpython',
+                           'netmiko',
+                           'paramiko',
+                           'scp',
+                           ]
   $uid                  = undef
   $gid                  = undef
   $sshkeys              = undef
