@@ -28,7 +28,7 @@ class confcollect::config::getconfs(
     owner  => $confcollect::owner,
     group  => $confcollect::owner,
     mode   => '0600',
-    before => Cron['getscp'],
+    before => Cron['getconfs'],
   }
 
   # MANAGED RESOURCES
@@ -54,17 +54,17 @@ class confcollect::config::getconfs(
   }
 
   create_ini_settings($ini_settings, {
-    path   => "${confcollect::config::_homedir}/etc/getscp.ini",
-    before => Cron['getscp'],
+    path   => "${confcollect::config::_homedir}/etc/getconfs.ini",
+    before => Cron['getconfs'],
   })
 
-  cron { 'getscp':
+  cron { 'getconfs':
     user    => $confcollect::owner,
     hour    => $_hour,
     minute  => $_minute,
     command => join([
-      "${confcollect::config::_homedir}/bin/getscp.py",
-      ">> /var/log/${confcollect::owner}/getscp.log",
+      "${confcollect::config::_homedir}/bin/getconfs.py -gv",
+      ">> /var/log/${confcollect::owner}/getconfs.log",
       '2>&1',
     ],' '),
   }
