@@ -37,7 +37,7 @@ class confcollect::config::getconfs(
     "${confcollect::config::_homedir}/bin/getconfs.py" :
       * => $file_defaults + {
         source => 'puppet:///modules/confcollect/getconfs.py',
-        mode   => '0700',;
+        mode   => '0700',
       };
     "${confcollect::config::_homedir}/lib/python/collectmediacento.py":
       * => $file_defaults + {
