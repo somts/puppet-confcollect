@@ -7,37 +7,35 @@ class confcollect::config::files {
   # CLASS VARIABLES
 
   $file_defaults = {
-    owner => $confcollect::owner,
-    group => $confcollect::owner,
-    mode  => '2750',
+    ensure  => 'directory',
+    owner   => $confcollect::owner,
+    group   => $confcollect::owner,
+    mode    => '2750',
   }
 
   # MANAGED RESOURCES
 
   file {
+    $confcollect::config::_repobasedir: * => $file_defaults;
+    "${confcollect::config::_homedir}/staging": * => $file_defaults;
+    "/var/log/${confcollect::owner}": * => $file_defaults + { mode => '2755' };
     "${confcollect::config::_homedir}/bin":
-      * => $file_defaults + { ensure => 'directory'                 };
+      * => $file_defaults + { purge => true, recurse => true };
     "${confcollect::config::_homedir}/etc":
-      * => $file_defaults + { ensure => 'directory'                 };
+      * => $file_defaults + { purge => true, recurse => true };
     "${confcollect::config::_homedir}/lib":
-      * => $file_defaults + { ensure => 'directory'                 };
-    $confcollect::config::_repobasedir :
-      * => $file_defaults + { ensure => 'directory'                 };
-    "${confcollect::config::_homedir}/staging":
-      * => $file_defaults + { ensure => 'directory'                 };
-    "/var/log/${confcollect::owner}":
-      * => $file_defaults + { ensure => 'directory', mode => '2755' };
+      * => $file_defaults + { purge => true, recurse => true };
+    # .pyc files amass here, so no purging....
+    "${confcollect::config::_homedir}/lib/python":
+      * => $file_defaults + {
+        require => File["${confcollect::config::_homedir}/lib"],
+      };
     "${confcollect::config::_homedir}/.ssh/id_rsa":
       * => $file_defaults + {
         ensure  => 'file',
         content => $confcollect::ssh_id,
         mode    => '0600',
      };
-    "${confcollect::config::_homedir}/lib/python":
-      * => $file_defaults + {
-        ensure  => 'directory',
-        require => File["${confcollect::config::_homedir}/lib"],
-      };
     "${confcollect::config::_homedir}/lib/python/gitcheck.py":
       * => $file_defaults + {
         ensure  => 'file',

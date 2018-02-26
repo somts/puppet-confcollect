@@ -113,11 +113,11 @@ def cfgworker(host, loglevel,
         except CalledProcessError:
             logger.error('Could not collect XML from %s', url)
             return
-    logger.debug('Done talking to %s.' % url)
+    logger.debug('Done talking to %s.', url)
 
     # Write XML to disk
     fname = path.join(destination_dir, host + '.xml')
-    logger.debug('Opening %s for writing XML data...' % fname)
+    logger.debug('Opening %s for writing XML data...', fname)
     myfile = open(fname, 'w')
     myfile.write(myxml)
     myfile.close()

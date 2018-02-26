@@ -18,7 +18,8 @@ def cfgworker(host, loglevel,
               remote_cmd='astparam dump',
               log_dir='/tmp',
               filename_extension='astparam',
-              timeout=20
+              timeout=20,
+              local_filename=None
              ):
     '''Speak to a Black Box MediaCento device using telnet on TCP/24
     (not TCP/23), and run `astparam dump` to get its config. Security on
@@ -34,9 +35,10 @@ def cfgworker(host, loglevel,
                           level=loglevel)
     logger.info('BEGIN %s', host)
 
-    local_filename = path.join(path.realpath(destination_dir),
-                               '%s.%s' % (host.split('.')[0],
-                                          filename_extension))
+    if local_filename is None:
+        local_filename = path.join(path.realpath(destination_dir),
+                                   '%s.%s' % (host.split('.')[0],
+                                              filename_extension))
     try:
         tel = Telnet(host, port)
 

@@ -34,6 +34,16 @@ from somtsfilelog import setup_logger
 def get_arguments():
     '''Get/set command-line options'''
 
+    # Calculate some defaults
+
+    # Most of the CPU time is spent waiting for remote hosts, so we can use
+    # a fairly generous multiple of our CPUs ...
+    pool_size = cpu_count() * 16
+    log_dir = path.join('/var', 'log', getuser())
+    ini = path.join(path.dirname(path.dirname(path.abspath(__file__))),
+                    'etc', 'getconfs.ini')
+
+    # Set up args
     parser = ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true',
                         dest='verbose', help='Turn on debugging output.')
@@ -41,32 +51,22 @@ def get_arguments():
                         help="No console output (for running from cron)")
     parser.add_argument('-g', '--git', action='store_true',
                         dest='git', help='Turn on git check and commit.')
-    # Most of the CPU time is spent waiting for remote hosts, so we can use
-    # a fairly generous multiple of our CPUs ...
-    pool_size = cpu_count() * 16
     parser.add_argument('-t', '--threads', action='store',
                         default=pool_size, dest='pool_size',
-                        help='Number of threads to use. Default: %i.' % pool_size)
-    log_dir = path.join('/var', 'log', getuser())
+                        help='Number of threads. Default: %i.' % pool_size)
     parser.add_argument('-l', '--logdir', action='store',
                         default=log_dir, dest='log_dir',
                         help='Log dir to store logs in. Default: %s.' % log_dir)
+    parser.add_argument('-i', '--ini', action='store',
+                        dest='ini', default=ini,
+                        help='.ini file to use for config. Default: %s' % ini)
 
     return parser.parse_args()
 
-def read_ini():
-    '''Read .ini config'''
-    myini = path.realpath(path.join(
-        path.dirname(path.dirname(path.abspath(__file__))), 'etc', 'getconfs.ini'))
-
-    conf = RawConfigParser()
-    conf.read(myini)
-    return conf
-
 def worker_wrapper(arg):
-    '''Take structured data and turn it into args and/or kwargs for a cfgworker().
-    By default, we assume this is an SCP daemon via Netmiko, but we also catch
-     specialized cases too.'''
+    '''Take structured data and turn it into args and/or kwargs for a
+    cfgworker().  By default, we assume this is an SCP daemon via Netmiko,
+    but we also catch specialized cases too.'''
     args, kwargs = arg
 
     kwargs.pop('repo_dir', None) # remove repo_dir from kwargs
@@ -74,15 +74,16 @@ def worker_wrapper(arg):
     if kwargs['device_type'] == 'mediacento':
         kwargs.pop('device_type', None) # remove device_type from kwargs
         return collectmediacento.cfgworker(*args, **kwargs)
+
     elif kwargs['device_type'] == 'pfsense':
         kwargs.pop('device_type', None) # remove device_type from kwargs
         return collectpfsense.cfgworker(*args, **kwargs)
-    else: # many device_type options for Netmiko, so it is the default
-        return collectscp.cfgworker(*args, **kwargs)
+
+    # many device_type options for Netmiko, so it is the default
+    return collectscp.cfgworker(*args, **kwargs)
 
 def main():
     '''Main process'''
-    config = read_ini()
     args = get_arguments()
 
     if args.quiet:
@@ -91,6 +92,9 @@ def main():
         loglevel = DEBUG
     else:
         loglevel = INFO
+
+    config = RawConfigParser()
+    config.read(args.ini)
 
     logger = setup_logger('getconfs',
                           path.join(args.log_dir, 'getconfs.log'),
@@ -116,7 +120,7 @@ def main():
         except NoOptionError:
             pass
 
-    logger.debug('Jobs built: %s', pformat(jobs))
+    logger.debug("Jobs built:\n%s", pformat(jobs))
 
     # Set up pools
     pool = Pool(processes=args.pool_size)
@@ -131,7 +135,7 @@ def main():
     # Commit any changes after we've attempted to collect everything
     for repo_dir in repo_dirs:
         if args.git:
-            logger.info('Git checking enabled. Checking %s.' % repo_dir)
+            logger.info('Git checking enabled. Checking %s.', repo_dir)
             git_check_add_commit_pull_push(repo_dir, logger)
         else:
             logger.info('Git checks disabled. Will not process %s', repo_dir)

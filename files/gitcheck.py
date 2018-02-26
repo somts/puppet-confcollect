@@ -6,7 +6,6 @@
     then pull from our origin (rebasing) and finally push changes to
     the origin.
 '''
-import logging
 from os import path
 from socket import gethostname
 from time import gmtime, strftime
