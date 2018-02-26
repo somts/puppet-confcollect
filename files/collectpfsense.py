@@ -122,7 +122,7 @@ def cfgworker(host, loglevel,
     myfile.write(myxml)
     myfile.close()
 
-    logger.debug('XML data saved to %s.', url, fname)
+    logger.debug('XML data saved to %s.', fname)
     logger.info('END %s', host)
 #pylint: enable=too-many-arguments
 #pylint: enable=too-many-locals
