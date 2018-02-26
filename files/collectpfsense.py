@@ -113,15 +113,16 @@ def cfgworker(host, loglevel,
         except CalledProcessError:
             logger.error('Could not collect XML from %s', url)
             return
+    logger.debug('Done talking to %s.' % url)
 
     # Write XML to disk
     fname = path.join(destination_dir, host + '.xml')
-    logger.debug('Opening %s for writing XML data...')
+    logger.debug('Opening %s for writing XML data...' % fname)
     myfile = open(fname, 'w')
     myfile.write(myxml)
     myfile.close()
 
-    logger.debug('Done talking to %s, XML data saved to %s.', url, fname)
+    logger.debug('XML data saved to %s.', url, fname)
     logger.info('END %s', host)
 #pylint: enable=too-many-arguments
 #pylint: enable=too-many-locals
