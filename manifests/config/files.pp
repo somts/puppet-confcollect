@@ -27,12 +27,6 @@ class confcollect::config::files {
       * => $file_defaults + { ensure => 'directory'                 };
     "/var/log/${confcollect::owner}":
       * => $file_defaults + { ensure => 'directory', mode => '2755' };
-    "${confcollect::config::_homedir}/bin/git_commit_push.py":
-      * => $file_defaults + {
-        ensure => 'file',
-        source => 'puppet:///modules/confcollect/git_commit_push.py',
-        mode   => '0700',
-      };
     "${confcollect::config::_homedir}/.ssh/id_rsa":
       * => $file_defaults + {
         ensure  => 'file',
