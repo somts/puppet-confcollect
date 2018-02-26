@@ -28,23 +28,7 @@ class confcollect::config {
   contain confcollect::config::repo
 
   if $confcollect::enable_getconfs {
-    Class['confcollect::config::repo']
-    -> Class['confcollect::config::getconfs']
+    Class['confcollect::config::repo'] -> Class['confcollect::config::getconfs']
     contain confcollect::config::getconfs
-  }
-  if $confcollect::enable_getpfsense {
-    Class['confcollect::config::repo']
-    -> Class['confcollect::config::getpfsense']
-    contain confcollect::config::getpfsense
-  }
-  if $confcollect::enable_getscp {
-    Class['confcollect::config::repo']
-    -> Class['confcollect::config::getscp']
-    contain confcollect::config::getscp
-  }
-  if $confcollect::enable_getmediacento {
-    Class['confcollect::config::repo']
-    -> Class['confcollect::config::getmediacento']
-    contain confcollect::config::getmediacento
   }
 }

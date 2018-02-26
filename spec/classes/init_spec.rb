@@ -61,23 +61,23 @@ describe 'confcollect' do
     }) }
     it { should contain_vcsrepo('/home/confcollect/src/other_repo') }
 
-    context 'with getpfsense enabled' do
+    context 'with getconfs enabled' do
       let :params do {
-        :ssh_id            => 'foo',
-        :enable_getpfsense => true,
-        :repos             => { 'pfsense' => {
+        :ssh_id          => 'foo',
+        :enable_getconfs => true,
+        :repos           => { 'pfsense' => {
           'source' => 'https://example.com/pfsense.git'}
         },
       } end
-      it { should contain_class('confcollect::config::getpfsense').that_requires(
+      it { should contain_class('confcollect::config::getconfs').that_requires(
         'Class[confcollect::config::repo]') }
-      it { should contain_file('/home/confcollect/bin/getpfsense.py').with({
+      it { should contain_file('/home/confcollect/bin/getconfs.py').with({
         :ensure => 'file',
         :mode   => '0700',
         :owner  => 'confcollect',
         :group  => 'confcollect',
-      }).that_comes_before('Cron[getpfsense]') }
-      it { should contain_cron('getpfsense').with_user('confcollect') }
+      }).that_comes_before('Cron[getconfs]') }
+      it { should contain_cron('getconfs').with_user('confcollect') }
     end
   end
 
