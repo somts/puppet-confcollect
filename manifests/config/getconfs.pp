@@ -34,6 +34,7 @@ class confcollect::config::getconfs(
   # MANAGED RESOURCES
 
   file {
+    "${confcollect::config::_homedir}/etc/getconfs.ini": * => $file_defaults;
     "${confcollect::config::_homedir}/bin/getconfs.py" :
       * => $file_defaults + {
         source => 'puppet:///modules/confcollect/getconfs.py',
@@ -54,8 +55,9 @@ class confcollect::config::getconfs(
   }
 
   create_ini_settings($ini_settings, {
-    path   => "${confcollect::config::_homedir}/etc/getconfs.ini",
-    before => Cron['getconfs'],
+    path    => "${confcollect::config::_homedir}/etc/getconfs.ini",
+    require => File["${confcollect::config::_homedir}/etc/getconfs.ini"],
+    before  => Cron['getconfs'],
   })
 
   cron { 'getconfs':
