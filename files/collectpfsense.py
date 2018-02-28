@@ -38,12 +38,6 @@ def cfgworker(host, loglevel,
              ):
     '''Login to pfSense with wget and return XML data'''
 
-    # Skip DEFAULT/main section
-    if host == 'DEFAULT':
-        return
-    elif host == 'main':
-        return
-
     # Set up variables
     url = "https://%s:%i/diag_backup.php" % (host, port)
     base_wget = [
