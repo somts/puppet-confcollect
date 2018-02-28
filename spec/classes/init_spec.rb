@@ -63,10 +63,20 @@ describe 'confcollect' do
 
     context 'with getconfs enabled' do
       let :params do {
-        :ssh_id          => 'foo',
-        :enable_getconfs => true,
-        :repos           => { 'pfsense' => {
+        :ssh_id                => 'foo',
+        :enable_getconfs       => true,
+        :repos                 => { 'pfsense' => {
           'source' => 'https://example.com/pfsense.git'}
+        },
+        :getconfs_ini_settings => {
+          'DEFAULT'     => {
+            'repo_dir'        => '/foo/bar',
+            'destination_dir' => '/foo/bar/baz',
+            'log_dir'         => '/bar',
+          },
+          'example.com' => {
+            'device_type' => 'mediacento',
+          },
         },
       } end
       it { should contain_class('confcollect::config::getconfs').that_requires(
@@ -76,6 +86,13 @@ describe 'confcollect' do
         :mode   => '0700',
         :owner  => 'confcollect',
         :group  => 'confcollect',
+      }).that_comes_before('Cron[getconfs]') }
+      it { should contain_file('/home/confcollect/etc/getconfs.ini').with({
+        :ensure  => 'file',
+        :mode    => '0600',
+        :owner   => 'confcollect',
+        :group   => 'confcollect',
+        :content => /^; THIS FILE MANANGED BY PUPPET.\n/,
       }).that_comes_before('Cron[getconfs]') }
       it { should contain_cron('getconfs').with_user('confcollect') }
     end

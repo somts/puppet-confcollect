@@ -11,6 +11,11 @@ class confcollect::config::getconfs(
 
   $hour_offset  = fqdn_rand(8,$name)
 
+  $_ini_settings = empty($confcollect::getconfs_ini_settings) ? {
+    true    => $ini_settings,
+    default => $confcollect::getconfs_ini_settings,
+  }
+
   # By default, we try and collect 3 times a day. We need the hour and
   # minute set randomly in order to splay out git commits and avoid
   # conflicts with multiple nodes trying to commit to the same branch
@@ -34,7 +39,10 @@ class confcollect::config::getconfs(
   # MANAGED RESOURCES
 
   file {
-    "${confcollect::config::_homedir}/etc/getconfs.ini": * => $file_defaults;
+    "${confcollect::config::_homedir}/etc/getconfs.ini":
+      * => $file_defaults + {
+        content => template('confcollect/getconfs.erb'),
+      };
     "${confcollect::config::_homedir}/bin/getconfs.py" :
       * => $file_defaults + {
         source => 'puppet:///modules/confcollect/getconfs.py',
@@ -53,12 +61,6 @@ class confcollect::config::getconfs(
         source  => 'puppet:///modules/confcollect/collectscp.py',
       };
   }
-
-  create_ini_settings($ini_settings, {
-    path    => "${confcollect::config::_homedir}/etc/getconfs.ini",
-    require => File["${confcollect::config::_homedir}/etc/getconfs.ini"],
-    before  => Cron['getconfs'],
-  })
 
   cron { 'getconfs':
     user    => $confcollect::owner,

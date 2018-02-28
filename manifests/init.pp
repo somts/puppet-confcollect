@@ -18,6 +18,7 @@ class confcollect(
   = $confcollect::params::homedir,
   Optional[Stdlib::Absolutepath] $repobasedir
   = $confcollect::params::repobasedir,
+  Hash $getconfs_ini_settings   = {},
 ) inherits confcollect::params {
 
   Class['confcollect::install']-> Class['confcollect::config']

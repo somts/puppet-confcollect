@@ -1,0 +1,9 @@
+; THIS FILE MANANGED BY PUPPET.
+
+<%- @_ini_settings.keys.sort.each do | key | -%>
+[<%= key %>]
+<%-     @_ini_settings[key].keys.sort.each do | k | -%>
+<%= k %> = <%= @_ini_settings[key][k] %>
+<%-     end %>
+
+<%- end -%>
