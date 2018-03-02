@@ -7,6 +7,7 @@
 from os import path
 from netmiko import ConnectHandler, SCPConn
 from netmiko.ssh_exception import NetMikoTimeoutException
+from scp import SCPException
 
 from somtsfilelog import setup_logger
 
@@ -48,7 +49,7 @@ def cfgworker(host, loglevel,
                     host, remote_filename, local_filename)
         scp_conn.close()
 
-    except NetMikoTimeoutException as err:
+    except (NetMikoTimeoutException, SCPException) as err:
         logger.error('Error with %s: %s', host, err)
 
     logger.info('END %s', host)
