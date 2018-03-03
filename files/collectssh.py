@@ -68,7 +68,7 @@ def cfgworker(host, loglevel,
             logger.info(output)
 
         # Once copied, move file into place
-        tempfile = rename(path.join(path.expanduser('~'), dest_basename)
+        tempfile = path.join(path.expanduser('~'), dest_basename)
         logger.info('Moving %s to %s.')
         rename(tempfile, dest_filename)
 
