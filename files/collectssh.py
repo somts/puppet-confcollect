@@ -4,7 +4,7 @@
     Config grabber via Netmiko/SSH typically to a Cisco SG-300. Used to
     keep SG-300 switches and the like up-to-date from various locations
     by making the device send its config to our collector.'''
-from os import path
+from os import path, rename
 from socket import gethostbyname, gethostname
 from getpass import getuser
 from netmiko import ConnectHandler
@@ -46,9 +46,14 @@ def cfgworker(host, loglevel,
                                   '%s.%s' % (host.split('.')[0],
                                              filename_extension))
 
+    # Delicate hack: scp on ye olde SG-300s appears to be extra dumb
+    # and we can only plop files in a user's homedir. We do that, and
+    # then move the file where we want it.
+    dest_basename = path.basename(dest_filename)
+
     command = ' '.join(['copy', remote_filename, 'scp://%s:%s@%s/%s' %
                         (dest_username, dest_password,
-                         dest_host, dest_filename)])
+                         dest_host, dest_basename)])
 
     try:
         logger.debug('Attempt to connect to host %s, device type %s',
@@ -61,6 +66,11 @@ def cfgworker(host, loglevel,
             logger.debug('Sending command, "%s"...', command)
             output = net_connect.send_command(command)
             logger.info(output)
+
+        # Once copied, move file into place
+        tempfile = rename(path.join(path.expanduser('~'), dest_basename)
+        logger.info('Moving %s to %s.')
+        rename(tempfile, dest_filename)
 
     except NetMikoTimeoutException as err:
         logger.error('Error with %s: %s', host, err)
