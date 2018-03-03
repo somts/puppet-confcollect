@@ -109,14 +109,16 @@ def main():
     jobs = []
     for section in config.sections():
 
-        # The module name can be the hostname
+        section_dict = dict(config.items(section))
+
+        # The module name can be the hostname, if present
         try:
-            host = config.get(section, 'host')
-        except NoOptionError:
+            host = section_dict.pop('host')
+        except KeyError:
             host = section
 
         # Set up structured data for worker_wrapper()
-        jobs.append(((host, loglevel), dict(config.items(section))))
+        jobs.append(((host, loglevel), section_dict))
 
         # Add any unique repo dirs to our set.
         try:
