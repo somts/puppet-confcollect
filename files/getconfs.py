@@ -80,7 +80,7 @@ def worker_wrapper(arg):
         kwargs.pop('device_type', None) # remove device_type from kwargs
         return collectpfsense.cfgworker(*args, **kwargs)
 
-    elif kwargs['device_type'] == 's300': # No SCP on Cisco SG-300
+    elif kwargs['device_type'] == 'cisco_s300': # No SCP on Cisco SG-300
         return collectssh.cfgworker(*args, **kwargs)
 
     # many device_type options for Netmiko SCP, so it is the default
