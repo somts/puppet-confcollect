@@ -41,7 +41,8 @@ def cfgworker(host, loglevel,
         dest_host = gethostbyname(gethostname())
 
     if dest_filename is None:
-        dest_filename = path.join(path.realpath(destination_dir),
+        # Need to preserve relative paths due to SG-300s being dumb.
+        dest_filename = path.join(destination_dir,
                                   '%s.%s' % (host.split('.')[0],
                                              filename_extension))
 
