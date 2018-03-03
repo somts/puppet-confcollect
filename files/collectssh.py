@@ -68,7 +68,7 @@ def cfgworker(host, loglevel,
 
         # Once copied, move file into place
         tempfile = path.join(path.expanduser('~'), dest_basename)
-        logger.info('Moving %s to %s.')
+        logger.info('Moving %s to %s.', tempfile, dest_filename)
         rename(tempfile, dest_filename)
 
     except NetMikoTimeoutException as err:
