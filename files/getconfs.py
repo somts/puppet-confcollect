@@ -27,6 +27,7 @@ sys.path.append(path.join(path.dirname(path.dirname(path.abspath(__file__))),
 import collectmediacento
 import collectpfsense
 import collectscp
+import collectssh
 from gitcheck import git_check_add_commit_pull_push
 from somtsfilelog import setup_logger
 #pylint: enable=wrong-import-position
@@ -65,8 +66,8 @@ def get_arguments():
 
 def worker_wrapper(arg):
     '''Take structured data and turn it into args and/or kwargs for a
-    cfgworker().  By default, we assume this is an SCP daemon via Netmiko,
-    but we also catch specialized cases too.'''
+    cfgworker().  By default, we assume this is an SCP daemon via
+    Netmiko, but we also catch specialized cases too.'''
     args, kwargs = arg
 
     kwargs.pop('repo_dir', None) # remove repo_dir from kwargs
@@ -79,7 +80,10 @@ def worker_wrapper(arg):
         kwargs.pop('device_type', None) # remove device_type from kwargs
         return collectpfsense.cfgworker(*args, **kwargs)
 
-    # many device_type options for Netmiko, so it is the default
+    elif kwargs['device_type'] == 's300': # No SCP on Cisco SG-300
+        return collectssh.cfgworker(*args, **kwargs)
+
+    # many device_type options for Netmiko SCP, so it is the default
     return collectscp.cfgworker(*args, **kwargs)
 
 def main():

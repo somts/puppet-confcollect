@@ -60,16 +60,16 @@ class confcollect::config::getconfs(
       * => $file_defaults + {
         source  => 'puppet:///modules/confcollect/collectscp.py',
       };
+    "${confcollect::config::_homedir}/lib/python/collectssh.py":
+      * => $file_defaults + {
+        source  => 'puppet:///modules/confcollect/collectssh.py',
+      };
   }
 
   cron { 'getconfs':
     user    => $confcollect::owner,
     hour    => $_hour,
     minute  => $_minute,
-    command => join([
-      "${confcollect::config::_homedir}/bin/getconfs.py -gv",
-      ">> /var/log/${confcollect::owner}/getconfs.log",
-      '2>&1',
-    ],' '),
+    command => "${confcollect::config::_homedir}/bin/getconfs.py -g",
   }
 }

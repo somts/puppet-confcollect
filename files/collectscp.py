@@ -35,21 +35,24 @@ def cfgworker(host, loglevel,
                                               filename_extension))
 
     try:
-        logger.debug('Attempt to connect to host %s, device type %s', host, device_type)
-        net_connect = ConnectHandler(ip=host,
-                                     device_type=device_type,
-                                     username=username,
-                                     password=password)
+        logger.debug('Attempt to SSH to host %s, device type %s',
+                     host, device_type)
+        with ConnectHandler(ip=host,
+                            device_type=device_type,
+                            username=username,
+                            password=password) as net_connect:
+            net_connect.enable()
+            logger.debug('Attempt to connect via SCP...')
+            try:
+                scp_conn = SCPConn(net_connect)
+                scp_conn.scp_get_file(remote_filename, local_filename)
+                logger.info('Config for %s:%s transferred successfully to %s.',
+                            host, remote_filename, local_filename)
+                scp_conn.close()
+            except SCPException as err:
+                logger.error('Error with %s: %s', host, err)
 
-        net_connect.enable()
-        logger.debug('Attempt to connect to SCP daemon...')
-        scp_conn = SCPConn(net_connect)
-        scp_conn.scp_get_file(remote_filename, local_filename)
-        logger.info('Configuration for %s:%s transferred successfully to %s.',
-                    host, remote_filename, local_filename)
-        scp_conn.close()
-
-    except (NetMikoTimeoutException, SCPException) as err:
+    except NetMikoTimeoutException as err:
         logger.error('Error with %s: %s', host, err)
 
     logger.info('END %s', host)
