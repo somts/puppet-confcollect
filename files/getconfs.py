@@ -52,10 +52,10 @@ def get_arguments():
                         help="No console output (for running from cron)")
     parser.add_argument('-g', '--git', action='store_true',
                         dest='git', help='Turn on git check and commit.')
-    parser.add_argument('-t', '--threads', action='store',
+    parser.add_argument('-t', '--threads', action='store', type=int,
                         default=pool_size, dest='pool_size',
                         help='Number of threads. Default: %i.' % pool_size)
-    parser.add_argument('-l', '--logdir', action='store', type=int,
+    parser.add_argument('-l', '--logdir', action='store',
                         default=log_dir, dest='log_dir',
                         help='Log dir to store logs in. Default: %s.' % log_dir)
     parser.add_argument('-i', '--ini', action='store',
