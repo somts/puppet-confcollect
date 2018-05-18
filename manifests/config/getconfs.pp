@@ -8,6 +8,10 @@ class confcollect::config::getconfs(
   include confcollect
 
   # CLASS VARIABLES
+  $cron_ensure = $confcollect::enable_getconfs ? {
+    true    => 'present',
+    default => 'absent',
+  }
 
   $hour_offset  = fqdn_rand(8,$name)
 
@@ -67,6 +71,7 @@ class confcollect::config::getconfs(
   }
 
   cron { 'getconfs':
+    ensure  => $cron_ensure,
     user    => $confcollect::owner,
     hour    => $_hour,
     minute  => $_minute,
