@@ -55,7 +55,7 @@ def get_arguments():
     parser.add_argument('-t', '--threads', action='store',
                         default=pool_size, dest='pool_size',
                         help='Number of threads. Default: %i.' % pool_size)
-    parser.add_argument('-l', '--logdir', action='store',
+    parser.add_argument('-l', '--logdir', action='store', type=int,
                         default=log_dir, dest='log_dir',
                         help='Log dir to store logs in. Default: %s.' % log_dir)
     parser.add_argument('-i', '--ini', action='store',
