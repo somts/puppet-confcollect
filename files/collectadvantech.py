@@ -19,17 +19,26 @@ def cfgworker(host, loglevel,
              ):
     '''Login to Advantech and return conf data'''
 
-    url = "http://%s:%i/cgi-bin/result.cgi?types=export" % (host, port)
+    # Different firmwares have different functions...
+    url1 = "http://%s:%i/cgi-bin/result.cgi?types=export" % (host, port)
+    url2 = "http://%s:%i/cgi-bin/index.cgi?func=doexport" % (host, port)
+
+    url = url1
 
     logger = setup_logger('collectadvantech_%s' % host,
                           path.join(log_dir, 'collectadvantech.%s.log' % host),
                           level=loglevel)
     logger.info('BEGIN %s', host)
-    logger.debug('Attempting to talk to %s ...', url)
+    logger.debug('Attempting to talk to %s ...', url1)
 
     if username is None and password is None:
         # Out of the box, there seems to be no password Advantechs
-        response = requests.get(url)
+        response = requests.get(url1)
+        if response.status_code == 404:
+            logger.debug('Done talking to %s.', url)
+            logger.debug('Attempting to talk to %s ...', url2)
+            response = requests.get(url2)
+            url = url2
     else:
         logger.warn('username/password unsupported for collectadvnatech')
 
