@@ -48,7 +48,11 @@ def cfgworker(host, loglevel,
     fname = path.join(destination_dir, host + '.conf')
     logger.debug('Opening %s for writing conf data...', fname)
     myfile = open(fname, 'w')
-    myfile.write(response.text)
+    # We must write as UTF-8 to avoide errors like:
+    # UnicodeEncodeError: 'ascii' codec can't encode character u'\x84'
+    # in position 2594: ordinal not in range(128)
+    # ...from the Healy CLAB1/CLAB2 devices.  Not sure why.
+    myfile.write(response.text.encode('utf-8'))
     myfile.close()
 
     logger.debug('conf data saved to %s.', fname)
