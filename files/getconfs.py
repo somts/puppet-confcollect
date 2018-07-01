@@ -24,6 +24,7 @@ from pprint import pformat
 sys.path.append(path.join(path.dirname(path.dirname(path.abspath(__file__))),
                           'lib',
                           'python'))
+import collectadvantech
 import collectmediacento
 import collectpfsense
 import collectscp
@@ -72,7 +73,11 @@ def worker_wrapper(arg):
 
     kwargs.pop('repo_dir', None) # remove repo_dir from kwargs
 
-    if kwargs['device_type'] == 'mediacento':
+    if kwargs['device_type'] == 'advantech':
+        kwargs.pop('device_type', None) # remove device_type from kwargs
+        return collectadvantech.cfgworker(*args, **kwargs)
+
+    elif kwargs['device_type'] == 'mediacento':
         kwargs.pop('device_type', None) # remove device_type from kwargs
         return collectmediacento.cfgworker(*args, **kwargs)
 

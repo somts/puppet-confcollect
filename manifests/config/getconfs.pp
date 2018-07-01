@@ -52,6 +52,10 @@ class confcollect::config::getconfs(
         source => 'puppet:///modules/confcollect/getconfs.py',
         mode   => '0700',
       };
+    "${confcollect::config::_homedir}/lib/python/collectadvantech.py":
+      * => $file_defaults + {
+        source  => 'puppet:///modules/confcollect/collectadvantech.py',
+      };
     "${confcollect::config::_homedir}/lib/python/collectmediacento.py":
       * => $file_defaults + {
         source  => 'puppet:///modules/confcollect/collectmediacento.py',
