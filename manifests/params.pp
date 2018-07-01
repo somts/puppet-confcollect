@@ -19,6 +19,7 @@ class confcollect::params {
                            'gitpython',
                            'netmiko',
                            'paramiko',
+                           'requests',
                            'scp',
                            ]
   $uid                  = undef

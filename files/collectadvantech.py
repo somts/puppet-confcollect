@@ -5,19 +5,17 @@
     up-to-date from various locations.'''
 
 from os import path
-from urllib2 import urlopen # urllib.request in Python 3
+import requests
 
 from somtsfilelog import setup_logger
 
 #pylint: disable=too-many-arguments
-#pylint: disable=too-many-locals
 def cfgworker(host, loglevel,
               port=80,
               username=None,
               password=None,
               destination_dir='/tmp',
               log_dir='/tmp',
-              timeout=300
              ):
     '''Login to Advantech and return conf data'''
 
@@ -31,8 +29,7 @@ def cfgworker(host, loglevel,
 
     if username is None and password is None:
         # Out of the box, there seems to be no password Advantechs
-        with urlopen(url, None, timeout) as response:
-            conf = response.read()
+        response = requests.get(url)
     else:
         logger.warn('username/password unsupported for collectadvnatech')
 
@@ -42,10 +39,9 @@ def cfgworker(host, loglevel,
     fname = path.join(destination_dir, host + '.conf')
     logger.debug('Opening %s for writing conf data...', fname)
     myfile = open(fname, 'w')
-    myfile.write(conf)
+    myfile.write(response.text)
     myfile.close()
 
     logger.debug('conf data saved to %s.', fname)
     logger.info('END %s', host)
 #pylint: enable=too-many-arguments
-#pylint: enable=too-many-locals
