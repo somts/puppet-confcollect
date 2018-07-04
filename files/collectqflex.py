@@ -15,7 +15,7 @@ from netmiko.ssh_exception import NetMikoTimeoutException
 
 from somtsfilelog import setup_logger
 
-def uu_to_xml(uue):
+def uu_to_xml(uue,logger):
     '''Take UUEncoded tar.gz data, return the contents of
     default.conf, which is really quasi-XML data'''
 
@@ -26,7 +26,11 @@ def uu_to_xml(uue):
         # Need a temporary filename for our .tar.gz file
         uuout = NamedTemporaryFile(suffix='.tgz', delete=False)
         os.unlink(uuout.name)
-        uu.decode(uuin.name, uuout.name)
+        try:
+            uu.decode(uuin.name, uuout.name)
+        except uu.Error as err:
+            logger.error('Error with UUE data: %s', err)
+            return None
 
     # The data is a tarball. Get default.conf out of it.
     with tarfile.open(name=uuout.name, mode='r') as tar:
@@ -95,7 +99,9 @@ def cfgworker(host, loglevel,
                                                  'q-flex_pup',
                                                  '%s_xml.%s' % (filebname, 'conf'))
                     # Convert UU-encoded data to text
-                    output = uu_to_xml(output)
+                    output = uu_to_xml(output,logger)
+                    if output is None:
+                        return
 
                     # check output for DynamicRoutingEnable = On
                     if '<set name="DynamicRouterEnable" value="On" />' \
