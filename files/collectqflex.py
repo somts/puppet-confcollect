@@ -98,7 +98,8 @@ def cfgworker(host, loglevel,
 
                 if cmd == 'getcurrent':
                     pup_filename = os.path.join(destination_dir,
-                                                'q-flex','txt'
+                                                'q-flex',
+                                                'txt',
                                                 '%s.%s' % (filebname, 'conf'))
 
                 elif cmd == 'getcurrentconfig':
