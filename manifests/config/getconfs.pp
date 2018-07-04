@@ -64,6 +64,10 @@ class confcollect::config::getconfs(
       * => $file_defaults + {
         source  => 'puppet:///modules/confcollect/collectpfsense.py',
       };
+    "${confcollect::config::_homedir}/lib/python/collectqflex.py":
+      * => $file_defaults + {
+        source  => 'puppet:///modules/confcollect/collectqflex.py',
+      };
     "${confcollect::config::_homedir}/lib/python/collectscp.py":
       * => $file_defaults + {
         source  => 'puppet:///modules/confcollect/collectscp.py',
