@@ -14,8 +14,8 @@ from os import path
 from logging import DEBUG
 from logging import ERROR
 from logging import INFO
-from multiprocessing import Pool
-from multiprocessing import cpu_count
+from multiprocessing.dummy import Pool
+from multiprocessing.dummy import cpu_count
 from configparser import RawConfigParser, NoOptionError
 from pprint import pformat
 
