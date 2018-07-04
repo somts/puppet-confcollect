@@ -143,7 +143,7 @@ def cfgworker(host, loglevel,
                 if port == 2601: # zebrad
                     dest_filename = os.path.join(os.path.realpath(destination_dir),
                                                  'q-flex_zebrad',
-                                                 '%s.%s' % (filebname, 'conf'))
+                                                 '%s_zebrad.%s' % (filebname, 'conf'))
                 elif port == 2605: # bgpd
                     dest_filename = os.path.join(os.path.realpath(destination_dir),
                                                  'q-flex_bgpd',
