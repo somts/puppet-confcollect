@@ -134,6 +134,8 @@ def cfgworker(host, loglevel,
                                     password=quagga_password) as net_connect:
                     net_connect.enable()
                     output = net_connect.send_command('show running-config')
+                    logger.debug('Received output from command...')
+                    logger.debug(output)
 
                 logger.debug('Done talking to %s, Telnet TCP/%i.', host, port)
 
