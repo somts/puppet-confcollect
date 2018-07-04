@@ -14,6 +14,7 @@ from tempfile import NamedTemporaryFile
 from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException
 from netmiko.ssh_exception import NetMikoAuthenticationException
+from paramiko.ssh_exception import SSHException
 
 from somtsfilelog import setup_logger
 
@@ -69,6 +70,8 @@ def cfgworker(host, loglevel,
     logger = setup_logger('collectqflex_%s' % host,
                           os.path.join(log_dir, 'collectqflex.%s.log' % host),
                           level=loglevel)
+    exceptions = (IOError, ValueError, socket.error, SSHException,
+                  NetMikoTimeoutException, NetMikoAuthenticationException)
 
     filebname = re.sub(r'\W', '_', host.split('.')[0])
 
@@ -120,9 +123,8 @@ def cfgworker(host, loglevel,
 
         logger.debug('Done talking to %s via SSH.', host)
 
-    except (IOError, ValueError, socket.error, \
-            NetMikoTimeoutException, NetMikoAuthenticationException) as err:
-        logger.error('SSH error with %s: %s', host, err)
+    except exceptions as err:
+        logger.error('SSH error with %s TCP/%i: %s', host, port, err)
 
     # Conditionally collect Quagga data
     if get_quagga:
@@ -156,9 +158,8 @@ def cfgworker(host, loglevel,
                     filep.write(output)
                 logger.info('conf data saved to %s.', dest_filename)
 
-            except (IOError, ValueError, socket.error, \
-                    NetMikoTimeoutException, NetMikoAuthenticationException) as err:
-                logger.error('Telnet error with %s: %s', host, err)
+            except exceptions as err:
+                logger.error('Telnet error with %s TCP/%i: %s', host, qport, err)
 
     logger.info('END %s', host)
 #pylint: enable=too-many-arguments
