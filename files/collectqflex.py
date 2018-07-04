@@ -18,6 +18,18 @@ from paramiko.ssh_exception import SSHException
 
 from somtsfilelog import setup_logger
 
+def write_qflex_file(filename, text, logger):
+    '''Take text and save it to file, if it is not empty'''
+    logger.debug('Saving output, "%s"' % text)
+
+    if text:
+        with open(filename, 'w') as filep:
+            filep.write(text)
+    else:
+        logger.warning('data is empty; not saving to %s.', filename)
+
+    logger.info('conf data saved to %s.', filename)
+
 def uu_to_xml(uue, logger):
     '''Take UUEncoded tar.gz data, return the contents of
     default.conf, which is really quasi-XML data'''
@@ -118,12 +130,8 @@ def cfgworker(host, loglevel,
                         get_quagga = True
 
                 logger.debug('Received output from command, "%s"...', cmd)
-                logger.debug(output)
 
-                with open(pup_filename, 'w') as filep:
-                    filep.write(output)
-
-                logger.info('conf data saved to %s.', pup_filename)
+                write_qflex_file(pup_filename, output, logger)
                 del pup_filename
 
         logger.debug('Done talking to %s via SSH.', host)
@@ -170,11 +178,7 @@ def get_quagga_running_config(filename, host, port, global_delay_factor, secret,
             logger.debug(output)
 
         logger.info('Done talking to %s, Telnet TCP/%i.', host, port)
-
-        with open(filename, 'w') as filep:
-            filep.write(output)
-
-        logger.info('conf data saved to %s.', filename)
+        write_qflex_file(filename, output, logger)
 
     except exceptions as err:
         logger.error('Telnet error with %s TCP/%i: %s', host, port, err)
