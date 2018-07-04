@@ -120,7 +120,7 @@ def cfgworker(host, loglevel,
 
         logger.debug('Done talking to %s via SSH.', host)
 
-    except (socket.error, NetMikoTimeoutException, \
+    except (IOError, socket.error, NetMikoTimeoutException, \
             NetMikoAuthenticationException) as err:
         logger.error('Error with %s: %s', host, err)
 
@@ -156,7 +156,7 @@ def cfgworker(host, loglevel,
                     filep.write(output)
                 logger.debug('conf data saved to %s.', dest_filename)
 
-            except (socket.error, NetMikoTimeoutException, \
+            except (IOError, socket.error, NetMikoTimeoutException, \
                     NetMikoAuthenticationException) as err:
                 logger.error('Error with %s: %s', host, err)
 
