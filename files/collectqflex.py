@@ -47,6 +47,7 @@ def uu_to_xml(uue, logger):
 #pylint: disable=too-many-locals
 def cfgworker(host, loglevel,
               device_type='linux',
+              port=22,
               username='pup',
               password='!!',
               quagga_password='!!',
@@ -54,7 +55,7 @@ def cfgworker(host, loglevel,
               destination_dir='staging',
               log_dir='/tmp',
               get_quagga=False,
-              global_delay_factor=3, # slow for Q-flex
+              global_delay_factor=10, # slow for Q-flex
              ):
     '''Speak to a Teledyne Paradise Q-flex modem using Paradise
     Universal Protocol (PUP). From this, we collect:
@@ -80,8 +81,7 @@ def cfgworker(host, loglevel,
     logger.info('BEGIN %s', host)
 
     try:
-        logger.debug('Attempt to connect to host %s, device type %s',
-                     host, device_type)
+        logger.debug('Attempt to talk to %s, SSH TCP/%i.', host, port)
         with ConnectHandler(ip=host,
                             global_delay_factor=global_delay_factor,
                             device_type=device_type,
@@ -89,7 +89,7 @@ def cfgworker(host, loglevel,
                             password=password) as net_connect:
 
             for command in commands:
-                logger.debug('Sending command, "%s"...', command)
+                logger.info('Sending command, "%s"...', command)
                 output = net_connect.send_command(command)
 
                 if command == 'getcurrent':
@@ -116,22 +116,22 @@ def cfgworker(host, loglevel,
 
                 with open(dest_filename, 'w') as filep:
                     filep.write(output)
-                logger.debug('conf data saved to %s.', dest_filename)
+                logger.info('conf data saved to %s.', dest_filename)
 
         logger.debug('Done talking to %s via SSH.', host)
 
     except (IOError, ValueError, socket.error, \
             NetMikoTimeoutException, NetMikoAuthenticationException) as err:
-        logger.error('Error with %s: %s', host, err)
+        logger.error('SSH error with %s: %s', host, err)
 
     # Conditionally collect Quagga data
     if get_quagga:
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
-        for port in quagga_ports:
+        for qport in quagga_ports:
             try:
-                logger.debug('Attempt to talk to %s, Telnet TCP/%i.', host, port)
+                logger.info('Attempt to talk to %s, Telnet TCP/%i.', host, qport)
                 with ConnectHandler(ip=host,
-                                    port=port,
+                                    port=qport,
                                     device_type='cisco_ios_telnet',
                                     global_delay_factor=global_delay_factor,
                                     secret=quagga_password,
@@ -141,7 +141,7 @@ def cfgworker(host, loglevel,
                     logger.debug('Received output from command...')
                     logger.debug(output)
 
-                logger.debug('Done talking to %s, Telnet TCP/%i.', host, port)
+                logger.info('Done talking to %s, Telnet TCP/%i.', host, qport)
 
                 if port == 2601: # zebrad
                     dest_filename = os.path.join(os.path.realpath(destination_dir),
@@ -154,11 +154,11 @@ def cfgworker(host, loglevel,
 
                 with open(dest_filename, 'w') as filep:
                     filep.write(output)
-                logger.debug('conf data saved to %s.', dest_filename)
+                logger.info('conf data saved to %s.', dest_filename)
 
             except (IOError, ValueError, socket.error, \
                     NetMikoTimeoutException, NetMikoAuthenticationException) as err:
-                logger.error('Error with %s: %s', host, err)
+                logger.error('Telnet error with %s: %s', host, err)
 
     logger.info('END %s', host)
 #pylint: enable=too-many-arguments
