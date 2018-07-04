@@ -98,12 +98,12 @@ def cfgworker(host, loglevel,
 
                 if cmd == 'getcurrent':
                     pup_filename = os.path.join(destination_dir,
-                                                'q-flex_puptxt',
-                                                '%s.%s' % (filebname, 'txt'))
+                                                'q-flex','txt'
+                                                '%s.%s' % (filebname, 'conf'))
 
                 elif cmd == 'getcurrentconfig':
                     pup_filename = os.path.join(destination_dir,
-                                                'q-flex_pup',
+                                                'q-flex',
                                                 '%s.%s' % (filebname, 'conf'))
 
                     # Convert UU-encoded data to text
@@ -136,12 +136,12 @@ def cfgworker(host, loglevel,
         for qport in quagga_ports:
             if qport == 2601: # zebrad
                 quagga_filename = os.path.join(destination_dir,
-                                               'q-flex_zebrad',
-                                               '%s_zebrad.%s' % (filebname, 'conf'))
+                                               'q-flex', 'quagga',
+                                               '%s.zebrad.%s' % (filebname, 'conf'))
             elif qport == 2605: # bgpd
                 quagga_filename = os.path.join(destination_dir,
-                                               'q-flex_bgpd',
-                                               '%s_bgpd.%s' % (filebname, 'conf'))
+                                               'q-flex', 'quagga',
+                                               '%s.bgpd.%s' % (filebname, 'conf'))
 
             get_quagga_running_config(quagga_filename, host, qport,
                                       global_delay_factor,
