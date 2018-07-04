@@ -6,6 +6,7 @@ Talk to various devices, get their config and store.
 import os
 import re
 import tarfile
+import socket
 import uu
 from tempfile import NamedTemporaryFile
 
@@ -118,7 +119,7 @@ def cfgworker(host, loglevel,
 
         logger.debug('Done talking to %s via SSH.', host)
 
-    except NetMikoTimeoutException as err:
+    except (socket.error, NetMikoTimeoutException) as err:
         logger.error('Error with %s: %s', host, err)
 
     # Conditionally collect Quagga data
@@ -153,7 +154,7 @@ def cfgworker(host, loglevel,
                     filep.write(output)
                 logger.debug('conf data saved to %s.', dest_filename)
 
-            except NetMikoTimeoutException as err:
+            except (socket.error, NetMikoTimeoutException) as err:
                 logger.error('Error with %s: %s', host, err)
 
     logger.info('END %s', host)
