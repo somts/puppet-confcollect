@@ -76,6 +76,7 @@ def cfgworker(host, loglevel,
         logger.debug('Attempt to connect to host %s, device type %s',
                      host, device_type)
         with ConnectHandler(ip=host,
+                            global_delay_factor=3, # slow for Q-flex
                             device_type=device_type,
                             username=username,
                             password=password) as net_connect:
