@@ -15,7 +15,7 @@ from netmiko.ssh_exception import NetMikoTimeoutException
 
 from somtsfilelog import setup_logger
 
-def uu_to_xml(uue,logger):
+def uu_to_xml(uue, logger):
     '''Take UUEncoded tar.gz data, return the contents of
     default.conf, which is really quasi-XML data'''
 
@@ -99,7 +99,7 @@ def cfgworker(host, loglevel,
                                                  'q-flex_pup',
                                                  '%s_xml.%s' % (filebname, 'conf'))
                     # Convert UU-encoded data to text
-                    output = uu_to_xml(output,logger)
+                    output = uu_to_xml(output, logger)
                     if output is None:
                         return
 
