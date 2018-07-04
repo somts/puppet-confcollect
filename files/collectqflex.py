@@ -74,12 +74,13 @@ def cfgworker(host, loglevel,
                   NetMikoTimeoutException, NetMikoAuthenticationException)
 
     filebname = re.sub(r'\W', '_', host.split('.')[0])
+    destination_dir = os.path.realpath(destination_dir)
 
     if quagga_ports is None:
         quagga_ports = [2601, 2605]
 
     # get the text-based config, then the zipped, uu-encoded config
-    commands = ['getcurrent', 'getcurrentconfig']
+    cmds = ['getcurrent', 'getcurrentconfig']
 
     logger.info('BEGIN %s', host)
 
@@ -91,19 +92,16 @@ def cfgworker(host, loglevel,
                             username=username,
                             password=password) as net_connect:
 
-            for command in commands:
-                logger.info('Sending command, "%s"...', command)
-                output = net_connect.send_command(command)
+            for cmd in cmds:
+                logger.info('Sending command, "%s"...', cmd)
+                output = net_connect.send_command(cmd)
 
-                if command == 'getcurrent':
-                    dest_filename = os.path.join(os.path.realpath(destination_dir),
-                                                 'q-flex_puptxt',
-                                                 '%s.%s' % (filebname, 'txt'))
+                if cmd == 'getcurrent':
+                    pup_filename = os.path.join(destination_dir,
+                                                'q-flex_puptxt',
+                                                '%s.%s' % (filebname, 'txt'))
 
-                elif command == 'getcurrentconfig':
-                    dest_filename = os.path.join(os.path.realpath(destination_dir),
-                                                 'q-flex_pup',
-                                                 '%s_xml.%s' % (filebname, 'conf'))
+                elif cmd == 'getcurrentconfig':
                     # Convert UU-encoded data to text
                     output = uu_to_xml(output, logger)
                     if output is None:
@@ -114,12 +112,14 @@ def cfgworker(host, loglevel,
                             in output:
                         get_quagga = True
 
-                logger.debug('Received output from command, "%s"...', command)
+                logger.debug('Received output from command, "%s"...', cmd)
                 logger.debug(output)
 
-                with open(dest_filename, 'w') as filep:
+                with open(pup_filename, 'w') as filep:
                     filep.write(output)
-                logger.info('conf data saved to %s.', dest_filename)
+
+                logger.info('conf data saved to %s.', pup_filename)
+                del pup_filename
 
         logger.debug('Done talking to %s via SSH.', host)
 
@@ -130,37 +130,48 @@ def cfgworker(host, loglevel,
     if get_quagga:
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
         for qport in quagga_ports:
-            try:
-                logger.info('Attempt to talk to %s, Telnet TCP/%i.', host, qport)
-                with ConnectHandler(ip=host,
-                                    port=qport,
-                                    device_type='cisco_ios_telnet',
-                                    global_delay_factor=global_delay_factor,
-                                    secret=quagga_password,
-                                    password=quagga_password) as net_connect:
-                    net_connect.enable()
-                    output = net_connect.send_command('show running-config')
-                    logger.debug('Received output from command...')
-                    logger.debug(output)
+            if qport == 2601: # zebrad
+                quagga_filename = os.path.join(destination_dir,
+                                               'q-flex_zebrad',
+                                               '%s_zebrad.%s' % (filebname, 'conf'))
+            elif qport == 2605: # bgpd
+                quagga_filename = os.path.join(destination_dir,
+                                               'q-flex_bgpd',
+                                               '%s_bgpd.%s' % (filebname, 'conf'))
 
-                logger.info('Done talking to %s, Telnet TCP/%i.', host, qport)
-
-                if port == 2601: # zebrad
-                    dest_filename = os.path.join(os.path.realpath(destination_dir),
-                                                 'q-flex_zebrad',
-                                                 '%s_zebrad.%s' % (filebname, 'conf'))
-                elif port == 2605: # bgpd
-                    dest_filename = os.path.join(os.path.realpath(destination_dir),
-                                                 'q-flex_bgpd',
-                                                 '%s_bgpd.%s' % (filebname, 'conf'))
-
-                with open(dest_filename, 'w') as filep:
-                    filep.write(output)
-                logger.info('conf data saved to %s.', dest_filename)
-
-            except exceptions as err:
-                logger.error('Telnet error with %s TCP/%i: %s', host, qport, err)
-
+            get_quagga_running_config(quagga_filename, host, qport,
+                                      global_delay_factor,
+                                      quagga_password, quagga_password,
+                                      logger, exceptions)
+            del quagga_filename
     logger.info('END %s', host)
-#pylint: enable=too-many-arguments
+
 #pylint: enable=too-many-locals
+
+def get_quagga_running_config(filename, host, port, global_delay_factor, secret,
+                              password, logger, exceptions):
+    '''Login to a Quagga-based service via Telnet, save the running-config'''
+    try:
+        logger.info('Attempt to talk to %s, Telnet TCP/%i.', host, port)
+        with ConnectHandler(ip=host,
+                            port=port,
+                            device_type='cisco_ios_telnet',
+                            global_delay_factor=global_delay_factor,
+                            secret=secret,
+                            password=password) as net_connect:
+            net_connect.enable()
+            output = net_connect.send_command('show running-config')
+            logger.debug('Received output from command...')
+            logger.debug(output)
+
+        logger.info('Done talking to %s, Telnet TCP/%i.', host, port)
+
+        with open(filename, 'w') as filep:
+            filep.write(output)
+
+        logger.info('conf data saved to %s.', filename)
+
+    except exceptions as err:
+        logger.error('Telnet error with %s TCP/%i: %s', host, port, err)
+
+#pylint: enable=too-many-arguments
