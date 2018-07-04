@@ -102,6 +102,10 @@ def cfgworker(host, loglevel,
                                                 '%s.%s' % (filebname, 'txt'))
 
                 elif cmd == 'getcurrentconfig':
+                    pup_filename = os.path.join(destination_dir,
+                                                'q-flex_pup',
+                                                '%s.%s' % (filebname, 'conf'))
+
                     # Convert UU-encoded data to text
                     output = uu_to_xml(output, logger)
                     if output is None:
