@@ -52,6 +52,7 @@ def cfgworker(host, loglevel,
               destination_dir='staging',
               log_dir='/tmp',
               get_quagga=False,
+              global_delay_factor=3, # slow for Q-flex
              ):
     '''Speak to a Teledyne Paradise Q-flex modem using Paradise
     Universal Protocol (PUP). From this, we collect:
@@ -80,7 +81,7 @@ def cfgworker(host, loglevel,
         logger.debug('Attempt to connect to host %s, device type %s',
                      host, device_type)
         with ConnectHandler(ip=host,
-                            global_delay_factor=3, # slow for Q-flex
+                            global_delay_factor=global_delay_factor,
                             device_type=device_type,
                             username=username,
                             password=password) as net_connect:
@@ -129,7 +130,7 @@ def cfgworker(host, loglevel,
                 with ConnectHandler(ip=host,
                                     port=port,
                                     device_type='cisco_ios_telnet',
-                                    global_delay_factor=3, # slow for Q-flex
+                                    global_delay_factor=global_delay_factor,
                                     secret=quagga_password,
                                     password=quagga_password) as net_connect:
                     net_connect.enable()
