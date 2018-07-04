@@ -27,6 +27,7 @@ sys.path.append(path.join(path.dirname(path.dirname(path.abspath(__file__))),
 import collectadvantech
 import collectmediacento
 import collectpfsense
+import collectqflex
 import collectscp
 import collectssh
 from gitcheck import git_check_add_commit_pull_push
@@ -84,6 +85,10 @@ def worker_wrapper(arg):
     elif kwargs['device_type'] == 'pfsense':
         kwargs.pop('device_type', None) # remove device_type from kwargs
         return collectpfsense.cfgworker(*args, **kwargs)
+
+    elif kwargs['device_type'] == 'qflex':
+        kwargs.pop('device_type', None) # remove device_type from kwargs
+        return collectqflex.cfgworker(*args, **kwargs)
 
     elif kwargs['device_type'] == 'cisco_s300': # No SCP on Cisco SG-300
         return collectssh.cfgworker(*args, **kwargs)
