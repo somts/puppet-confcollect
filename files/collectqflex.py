@@ -13,6 +13,7 @@ from tempfile import NamedTemporaryFile
 # Import modules that tend to need a special install
 from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException
+from netmiko.ssh_exception import NetMikoAuthenticationException
 
 from somtsfilelog import setup_logger
 
@@ -119,7 +120,8 @@ def cfgworker(host, loglevel,
 
         logger.debug('Done talking to %s via SSH.', host)
 
-    except (socket.error, NetMikoTimeoutException) as err:
+    except (socket.error, NetMikoTimeoutException, \
+            NetMikoAuthenticationException) as err:
         logger.error('Error with %s: %s', host, err)
 
     # Conditionally collect Quagga data
@@ -154,7 +156,8 @@ def cfgworker(host, loglevel,
                     filep.write(output)
                 logger.debug('conf data saved to %s.', dest_filename)
 
-            except (socket.error, NetMikoTimeoutException) as err:
+            except (socket.error, NetMikoTimeoutException, \
+                    NetMikoAuthenticationException) as err:
                 logger.error('Error with %s: %s', host, err)
 
     logger.info('END %s', host)
