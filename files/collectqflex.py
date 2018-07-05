@@ -18,17 +18,43 @@ from paramiko.ssh_exception import SSHException
 
 from somtsfilelog import setup_logger
 
-def write_qflex_file(filename, text, logger):
-    '''Take text and save it to file, if it is not empty'''
-    logger.debug('Saving output, "%s"' % text)
+def get_qflex_data(filenames, cmds, logger, nm_kwargs, enable=False):
+    '''Login to a Netmiko service, save output of a command'''
 
-    if text:
-        with open(filename, 'w') as filep:
-            filep.write(text)
-    else:
-        logger.warning('data is empty; not saving to %s.', filename)
+    hostinfo = '%s:%i (%s)' % (nm_kwargs['host'], nm_kwargs['port'],
+                               nm_kwargs['device_type'])
 
-    logger.info('conf data saved to %s.', filename)
+    logger.info('Connect to %s', hostinfo)
+    try:
+        with ConnectHandler(**nm_kwargs) as net_connect:
+            if enable:
+                net_connect.enable()
+
+            for cmd, filename in zip(cmds, filenames):
+                output = net_connect.send_command(cmd)
+
+                if cmd == 'getcurrentconfig': # uu decode this text
+                    output = uu_to_xml(output, logger)
+
+                logger.debug('Received output from command, "%s":', cmd)
+
+                if output:
+
+                    logger.debug(output)
+                    logger.debug('Saving output, "%s"' % output)
+
+                    with open(filename, 'w') as filep:
+                        filep.write(output)
+
+                    logger.info('data saved to %s.', filename)
+                else:
+                    logger.warning('data is empty; not saving to %s.', filename)
+
+        logger.info('Disconnect from %s', hostinfo)
+
+    except (IOError, ValueError, socket.error, SSHException,
+            NetMikoTimeoutException, NetMikoAuthenticationException) as err:
+        logger.info('Error with %s: "%s".', hostinfo, err)
 
 def uu_to_xml(uue, logger):
     '''Take UUEncoded tar.gz data, return the contents of
@@ -67,8 +93,8 @@ def cfgworker(host, loglevel,
               quagga_ports=None,
               destination_dir='staging',
               log_dir='/tmp',
-              get_quagga=False,
               global_delay_factor=10, # slow for Q-flex
+              blocking_timeout=60,    # slow for Q-flex
              ):
     '''Speak to a Teledyne Paradise Q-flex modem using Paradise
     Universal Protocol (PUP). From this, we collect:
@@ -82,105 +108,65 @@ def cfgworker(host, loglevel,
     logger = setup_logger('collectqflex_%s' % host,
                           os.path.join(log_dir, 'collectqflex.%s.log' % host),
                           level=loglevel)
-    exceptions = (IOError, ValueError, socket.error, SSHException,
-                  NetMikoTimeoutException, NetMikoAuthenticationException)
-
     filebname = re.sub(r'\W', '_', host.split('.')[0])
     destination_dir = os.path.realpath(destination_dir)
 
+    # Quagga vars
+    qcmds = ['show running-config']
     if quagga_ports is None:
         quagga_ports = [2601, 2605]
 
-    # get the text-based config, then the zipped, uu-encoded config
-    cmds = ['getcurrent', 'getcurrentconfig']
+    # PUP vars
+    pcmds = ['getcurrentconfig', 'getcurrent']
+    pfilenames = [os.path.join(destination_dir, 'q-flex',
+                               '%s.%s' % (filebname, 'conf')),
+                  os.path.join(destination_dir, 'q-flex', 'txt',
+                               '%s.%s' % (filebname, 'conf'))]
+    netmiko_ssh_kwargs = {
+        'host': host,
+        'port': port,
+        'global_delay_factor': global_delay_factor,
+        'blocking_timeout': blocking_timeout,
+        'device_type': device_type,
+        'username': username,
+        'password': password,
+    }
 
     logger.info('BEGIN %s', host)
+    get_qflex_data(pfilenames, pcmds, logger, netmiko_ssh_kwargs)
 
-    try:
-        logger.debug('Attempt to talk to %s, SSH TCP/%i.', host, port)
-        with ConnectHandler(ip=host,
-                            global_delay_factor=global_delay_factor,
-                            device_type=device_type,
-                            username=username,
-                            password=password) as net_connect:
+    # Collect Quagga data if DynamicRoutingEnable = On
+    with open(pfilenames[0], 'r') as filep:
+        default_conf = filep.read()
 
-            for cmd in cmds:
-                logger.info('Sending command, "%s"...', cmd)
-                output = net_connect.send_command(cmd)
-
-                if cmd == 'getcurrent':
-                    pup_filename = os.path.join(destination_dir,
-                                                'q-flex',
-                                                'txt',
-                                                '%s.%s' % (filebname, 'conf'))
-
-                elif cmd == 'getcurrentconfig':
-                    pup_filename = os.path.join(destination_dir,
-                                                'q-flex',
-                                                '%s.%s' % (filebname, 'conf'))
-
-                    # Convert UU-encoded data to text
-                    output = uu_to_xml(output, logger)
-                    if output is None:
-                        return
-
-                    # check output for DynamicRoutingEnable = On
-                    if '<set name="DynamicRouterEnable" value="On" />' \
-                            in output:
-                        get_quagga = True
-
-                logger.debug('Received output from command, "%s"...', cmd)
-
-                write_qflex_file(pup_filename, output, logger)
-                del pup_filename
-
-        logger.debug('Done talking to %s via SSH.', host)
-
-    except exceptions as err:
-        logger.error('SSH error with %s TCP/%i: %s', host, port, err)
-
-    # Conditionally collect Quagga data
-    if get_quagga:
+    if '<set name="DynamicRouterEnable" value="On" />' in default_conf:
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
         for qport in quagga_ports:
+
+            netmiko_telnet_kwargs = {
+                'device_type': 'cisco_ios_telnet',
+                'host': host,
+                'port': qport,
+                'global_delay_factor': global_delay_factor,
+                'blocking_timeout': blocking_timeout,
+                'secret': quagga_password,
+                'password': quagga_password,
+            }
+
             if qport == 2601: # zebrad
-                quagga_filename = os.path.join(destination_dir,
-                                               'q-flex', 'quagga',
-                                               '%s.zebrad.%s' % (filebname, 'conf'))
+                qfilenames = [os.path.join(destination_dir,
+                                           'q-flex', 'quagga',
+                                           '%s.zebrad.%s' % (filebname, 'conf'))]
             elif qport == 2605: # bgpd
-                quagga_filename = os.path.join(destination_dir,
-                                               'q-flex', 'quagga',
-                                               '%s.bgpd.%s' % (filebname, 'conf'))
+                qfilenames = [os.path.join(destination_dir,
+                                           'q-flex', 'quagga',
+                                           '%s.bgpd.%s' % (filebname, 'conf'))]
 
-            get_quagga_running_config(quagga_filename, host, qport,
-                                      global_delay_factor,
-                                      quagga_password, quagga_password,
-                                      logger, exceptions)
-            del quagga_filename
+            get_qflex_data(qfilenames, qcmds, logger,
+                           netmiko_telnet_kwargs, enable=True)
+
+            del qfilenames, netmiko_telnet_kwargs
+
     logger.info('END %s', host)
-
 #pylint: enable=too-many-locals
-
-def get_quagga_running_config(filename, host, port, global_delay_factor, secret,
-                              password, logger, exceptions):
-    '''Login to a Quagga-based service via Telnet, save the running-config'''
-    try:
-        logger.info('Attempt to talk to %s, Telnet TCP/%i.', host, port)
-        with ConnectHandler(ip=host,
-                            port=port,
-                            device_type='cisco_ios_telnet',
-                            global_delay_factor=global_delay_factor,
-                            secret=secret,
-                            password=password) as net_connect:
-            net_connect.enable()
-            output = net_connect.send_command('show running-config')
-            logger.debug('Received output from command...')
-            logger.debug(output)
-
-        logger.info('Done talking to %s, Telnet TCP/%i.', host, port)
-        write_qflex_file(filename, output, logger)
-
-    except exceptions as err:
-        logger.error('Telnet error with %s TCP/%i: %s', host, port, err)
-
 #pylint: enable=too-many-arguments

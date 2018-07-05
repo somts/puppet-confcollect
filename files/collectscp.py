@@ -37,7 +37,7 @@ def cfgworker(host, loglevel,
     try:
         logger.debug('Attempt to SSH to host %s, device type %s',
                      host, device_type)
-        with ConnectHandler(ip=host,
+        with ConnectHandler(host=host,
                             device_type=device_type,
                             username=username,
                             password=password) as net_connect:
