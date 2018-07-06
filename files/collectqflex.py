@@ -18,7 +18,8 @@ from paramiko.ssh_exception import SSHException
 
 from somtsfilelog import setup_logger
 
-def get_qflex_data(filenames, cmds, logger, nm_kwargs, enable=False):
+#pylint: disable=too-many-arguments
+def get_qflex_data(filenames, cmds, logger, nm_kwargs, enable=False, ending=None):
     '''Login to a Netmiko service, save output of a command'''
 
     hostinfo = '%s:%i (%s)' % (nm_kwargs['host'], nm_kwargs['port'],
@@ -39,22 +40,32 @@ def get_qflex_data(filenames, cmds, logger, nm_kwargs, enable=False):
                 logger.debug('Received output from command, "%s":', cmd)
 
                 if output:
+                    # Q-flex modems can be flaky over-the-air, so
+                    # we may want to verify an end string to assure us
+                    # that we received uncorrupted data.
+                    if ending and not output.endswith(ending):
+                        logger.error('Unsaved to %s. Data does end with "%s"',
+                                     filename, ending)
+                        writefile = False
+                    else:
+                        writefile = True
 
                     logger.debug(output)
-                    logger.debug('Saving output, "%s"' % output)
 
-                    with open(filename, 'w') as filep:
-                        filep.write(output)
-
-                    logger.info('data saved to %s.', filename)
+                    if writefile:
+                        logger.debug('Saving output, "%s"' % output)
+                        with open(filename, 'w') as filep:
+                            filep.write(output)
+                        logger.info('Saved to %s.', filename)
                 else:
-                    logger.warning('data is empty; not saving to %s.', filename)
+                    logger.warning('Unsaved to %s. Data is empty.', filename)
 
         logger.info('Disconnect from %s', hostinfo)
 
     except (IOError, ValueError, socket.error, SSHException,
             NetMikoTimeoutException, NetMikoAuthenticationException) as err:
         logger.info('Error with %s: "%s".', hostinfo, err)
+#pylint: enable=too-many-arguments
 
 def uu_to_xml(uue, logger):
     '''Take UUEncoded tar.gz data, return the contents of
@@ -136,8 +147,11 @@ def cfgworker(host, loglevel,
     get_qflex_data(pfilenames, pcmds, logger, netmiko_ssh_kwargs)
 
     # Collect Quagga data if DynamicRoutingEnable = On
-    with open(pfilenames[0], 'r') as filep:
-        default_conf = filep.read()
+    try:
+        with open(pfilenames[0], 'r') as filep:
+            default_conf = filep.read()
+    except IOError:
+        default_conf = ''
 
     if '<set name="DynamicRouterEnable" value="On" />' in default_conf:
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
@@ -163,7 +177,7 @@ def cfgworker(host, loglevel,
                                            '%s.bgpd.%s' % (filebname, 'conf'))]
 
             get_qflex_data(qfilenames, qcmds, logger,
-                           netmiko_telnet_kwargs, enable=True)
+                           netmiko_telnet_kwargs, enable=True, ending='end')
 
             del qfilenames, netmiko_telnet_kwargs
 
