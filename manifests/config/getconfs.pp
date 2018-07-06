@@ -43,8 +43,13 @@ class confcollect::config::getconfs(
   # MANAGED RESOURCES
 
   file {
+    "${confcollect::config::_homedir}/etc/getconfs.yaml":
+      * => $file_defaults + {
+        content => to_yaml($_ini_settings),
+      };
     "${confcollect::config::_homedir}/etc/getconfs.ini":
       * => $file_defaults + {
+        ensure  => 'absent',
         content => template('confcollect/getconfs.erb'),
       };
     "${confcollect::config::_homedir}/bin/getconfs.py" :
