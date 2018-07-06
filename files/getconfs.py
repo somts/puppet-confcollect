@@ -110,8 +110,8 @@ def main():
     with open(args.yaml, 'r') as filep:
         config = yaml.load(filep)
 
-    if config.has_key('DEFAULTS'):
-        defaults = config.pop('DEFAULTS')
+    if config.has_key('DEFAULT'):
+        defaults = config.pop('DEFAULT')
     else:
         defaults = dict()
 
@@ -130,14 +130,14 @@ def main():
         except KeyError:
             host = section
 
-        section_copy = dict(defaults.items() + section_dict.items())
+        merged = dict(defaults.items() + section_dict.items())
 
         # Set up structured data for worker_wrapper()
-        jobs.append(((host, loglevel), section_copy))
+        jobs.append(((host, loglevel), merged))
 
         # Add any unique repo dirs to our set.
-        if section_copy.has_key('repo_dir'):
-            repo_dirs.add(section_copy['repo_dir'])
+        if merged.has_key('repo_dir'):
+            repo_dirs.add(merged['repo_dir'])
 
     logger.debug("Jobs built:\n%s", pformat(jobs))
 
