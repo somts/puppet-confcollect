@@ -107,7 +107,8 @@ def main():
     else:
         loglevel = INFO
 
-    config = yaml.load(args.yaml)
+    with open(args.yaml,'r') as filep:
+        config = yaml.load(filep)
 
     logger = setup_logger('getconfs',
                           path.join(args.log_dir, 'getconfs.log'),
