@@ -123,14 +123,14 @@ def main():
     repo_dirs = set()
     jobs = []
     for section, section_dict in config.items():
+        # Merge section with DEFAULT
+        merged = dict(defaults.items() + section_dict.items())
 
         # The module name can be the hostname, if present
         try:
-            host = section_dict.pop('host')
+            host = merged.pop('host')
         except KeyError:
             host = section
-
-        merged = dict(defaults.items() + section_dict.items())
 
         # Set up structured data for worker_wrapper()
         jobs.append(((host, loglevel), merged))
