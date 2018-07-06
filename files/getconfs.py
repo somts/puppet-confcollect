@@ -130,7 +130,7 @@ def main():
         except KeyError:
             host = section
 
-        section_copy = dict(default.items() + section_dict.items())
+        section_copy = dict(defaults.items() + section_dict.items())
 
         # Set up structured data for worker_wrapper()
         jobs.append(((host, loglevel), section_copy))
