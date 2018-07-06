@@ -16,8 +16,8 @@ from logging import ERROR
 from logging import INFO
 from multiprocessing.dummy import Pool
 from multiprocessing.dummy import cpu_count
-from configparser import RawConfigParser, NoOptionError
 from pprint import pformat
+import yaml
 
 # Import custom libs from ../lib/python, relative to this file...
 #pylint: disable=wrong-import-position
@@ -43,8 +43,8 @@ def get_arguments():
     # a fairly generous multiple of our CPUs ...
     pool_size = cpu_count() * 16
     log_dir = path.join('/var', 'log', getuser())
-    ini = path.join(path.dirname(path.dirname(path.abspath(__file__))),
-                    'etc', 'getconfs.ini')
+    myyaml = path.join(path.dirname(path.dirname(path.abspath(__file__))),
+                       'etc', 'getconfs.yaml')
 
     # Set up args
     parser = ArgumentParser()
@@ -60,9 +60,9 @@ def get_arguments():
     parser.add_argument('-l', '--logdir', action='store',
                         default=log_dir, dest='log_dir',
                         help='Log dir to store logs in. Default: %s.' % log_dir)
-    parser.add_argument('-i', '--ini', action='store',
-                        dest='ini', default=ini,
-                        help='.ini file to use for config. Default: %s' % ini)
+    parser.add_argument('-y', '--yaml', action='store',
+                        dest='yaml', default=myyaml,
+                        help='.yaml file to use for config. Default: %s' % yaml)
 
     return parser.parse_args()
 
@@ -107,8 +107,7 @@ def main():
     else:
         loglevel = INFO
 
-    config = RawConfigParser()
-    config.read(args.ini)
+    config = yaml.load(args.yaml)
 
     logger = setup_logger('getconfs',
                           path.join(args.log_dir, 'getconfs.log'),
@@ -117,9 +116,7 @@ def main():
     # Build jobs
     repo_dirs = set()
     jobs = []
-    for section in config.sections():
-
-        section_dict = dict(config.items(section))
+    for section, section_dict in config:
 
         # The module name can be the hostname, if present
         try:
@@ -131,10 +128,8 @@ def main():
         jobs.append(((host, loglevel), section_dict))
 
         # Add any unique repo dirs to our set.
-        try:
-            repo_dirs.add(config.get(section, 'repo_dir'))
-        except NoOptionError:
-            pass
+        if section_dict.has_key('repo_dir'):
+            repo_dirs.add(section_dict['repo_dir'])
 
     logger.debug("Jobs built:\n%s", pformat(jobs))
 
