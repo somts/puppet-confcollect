@@ -107,17 +107,17 @@ def main():
     else:
         loglevel = INFO
 
-    with open(args.yaml,'r') as filep:
+    with open(args.yaml, 'r') as filep:
         config = yaml.load(filep)
 
     logger = setup_logger('getconfs',
                           path.join(args.log_dir, 'getconfs.log'),
                           level=loglevel)
-
     # Build jobs
+
     repo_dirs = set()
     jobs = []
-    for section, section_dict in config:
+    for section, section_dict in config.items():
 
         # The module name can be the hostname, if present
         try:
