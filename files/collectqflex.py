@@ -125,7 +125,7 @@ def cfgworker(host, loglevel,
     # Quagga vars
     qcmds = ['show running-config']
     if quagga_ports is None:
-        quagga_ports = [2601, 2605]
+        quagga_ports = {'zebrad': 2601, 'bgpd': 2605}
 
     # PUP vars
     pcmds = ['getcurrentconfig', 'getcurrent']
@@ -133,18 +133,18 @@ def cfgworker(host, loglevel,
                                '%s.%s' % (filebname, 'conf')),
                   os.path.join(destination_dir, 'q-flex', 'txt',
                                '%s.%s' % (filebname, 'conf'))]
-    netmiko_ssh_kwargs = {
-        'host': host,
-        'port': port,
-        'global_delay_factor': global_delay_factor,
-        'blocking_timeout': blocking_timeout,
-        'device_type': device_type,
-        'username': username,
-        'password': password,
-    }
 
     logger.info('BEGIN %s', host)
-    get_qflex_data(pfilenames, pcmds, logger, netmiko_ssh_kwargs)
+    get_qflex_data(pfilenames, pcmds, logger,
+                   {
+                       'blocking_timeout': blocking_timeout,
+                       'device_type': device_type,
+                       'global_delay_factor': global_delay_factor,
+                       'host': host,
+                       'password': password,
+                       'port': port,
+                       'username': username,
+                   })
 
     # Collect Quagga data if DynamicRoutingEnable = On
     try:
@@ -155,31 +155,22 @@ def cfgworker(host, loglevel,
 
     if '<set name="DynamicRouterEnable" value="On" />' in default_conf:
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
-        for qport in quagga_ports:
-
-            netmiko_telnet_kwargs = {
-                'device_type': 'cisco_ios_telnet',
-                'host': host,
-                'port': qport,
-                'global_delay_factor': global_delay_factor,
-                'blocking_timeout': blocking_timeout,
-                'secret': quagga_password,
-                'password': quagga_password,
-            }
-
-            if qport == 2601: # zebrad
-                qfilenames = [os.path.join(destination_dir,
-                                           'q-flex', 'quagga',
-                                           '%s.zebrad.%s' % (filebname, 'conf'))]
-            elif qport == 2605: # bgpd
-                qfilenames = [os.path.join(destination_dir,
-                                           'q-flex', 'quagga',
-                                           '%s.bgpd.%s' % (filebname, 'conf'))]
-
-            get_qflex_data(qfilenames, qcmds, logger,
-                           netmiko_telnet_kwargs, enable=True, ending='end')
-
-            del qfilenames, netmiko_telnet_kwargs
+        for qname, qport in quagga_ports:
+            get_qflex_data([os.path.join(destination_dir, 'q-flex', 'quagga',
+                                         '%s.%s.%s' % (filebname, qname, 'conf'))],
+                           qcmds,
+                           logger,
+                           {
+                               'blocking_timeout': blocking_timeout,
+                               'device_type': 'cisco_ios_telnet',
+                               'global_delay_factor': global_delay_factor,
+                               'host': host,
+                               'password': quagga_password,
+                               'port': qport,
+                               'secret': quagga_password,
+                           },
+                           enable=True,
+                           ending='end')
 
     logger.info('END %s', host)
 #pylint: enable=too-many-locals
