@@ -34,7 +34,7 @@ def get_qflex_data(filecmdlist, nm_kwargs, logger, enable=False, ending=None):
                 logger.debug('Sending enable command to %s', hostinfo)
                 net_connect.enable()
 
-            for fname, cmd in filecmdlist():
+            for fname, cmd in filecmdlist:
                 logger.debug('Sending command "%s" to %s', cmd, hostinfo)
                 output = net_connect.send_command(cmd)
 
