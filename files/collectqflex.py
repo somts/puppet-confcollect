@@ -19,7 +19,10 @@ from paramiko.ssh_exception import SSHException
 from somtsfilelog import setup_logger
 
 def get_qflex_data(filecmdlist, nm_kwargs, logger, enable=False, ending=None):
-    '''Login to a Netmiko service, save output of a command'''
+    '''Login to a Netmiko service, save output of a command.
+       filecmdlist is a list of tuples. tuple[0] is the filename, tuple[1]
+       if the command.
+    '''
 
     hostinfo = '%s:%i (%s)' % (nm_kwargs['host'], nm_kwargs['port'],
                                nm_kwargs['device_type'])
@@ -31,7 +34,7 @@ def get_qflex_data(filecmdlist, nm_kwargs, logger, enable=False, ending=None):
                 logger.debug('Sending enable command to %s', hostinfo)
                 net_connect.enable()
 
-            for fname, cmd in filecmdlist.items():
+            for fname, cmd in filecmdlist():
                 logger.debug('Sending command "%s" to %s', cmd, hostinfo)
                 output = net_connect.send_command(cmd)
 
@@ -125,8 +128,8 @@ def cfgworker(host, loglevel,
     }
 
     logger.info('BEGIN %s', host)
-    get_qflex_data([{os.path.join(destdir, '.'.join((bname, 'conf'))): 'getcurrentconfig'},
-                    {os.path.join(destdir, 'txt', '.'.join((bname, 'conf'))): 'getcurrent'},
+    get_qflex_data([(os.path.join(destdir, '.'.join((bname, 'conf'))), 'getcurrentconfig'),
+                    (os.path.join(destdir, 'txt', '.'.join((bname, 'conf'))), 'getcurrent'),
                    ],
                    dict(qflex_defaults.items() + {
                        'device_type': device_type,
@@ -147,7 +150,7 @@ def cfgworker(host, loglevel,
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
         for qname, qport in quagga_ports.items():
             qfname = os.path.join(destdir, 'quagga', '.'.join((bname, qname, 'conf')))
-            get_qflex_data([{qfname: 'show running-config'}],
+            get_qflex_data([(qfname, 'show running-config')],
                            dict(qflex_defaults.items() + {
                                'device_type': 'cisco_ios_telnet',
                                'password': quagga_password,
