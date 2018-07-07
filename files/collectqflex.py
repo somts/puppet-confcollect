@@ -18,8 +18,7 @@ from paramiko.ssh_exception import SSHException
 
 from somtsfilelog import setup_logger
 
-#pylint: disable=too-many-arguments
-def get_qflex_data(filenames, cmds, logger, nm_kwargs, enable=False, ending=None):
+def get_qflex_data(filecmdlist, nm_kwargs, logger, enable=False, ending=None):
     '''Login to a Netmiko service, save output of a command'''
 
     hostinfo = '%s:%i (%s)' % (nm_kwargs['host'], nm_kwargs['port'],
@@ -29,43 +28,36 @@ def get_qflex_data(filenames, cmds, logger, nm_kwargs, enable=False, ending=None
     try:
         with ConnectHandler(**nm_kwargs) as net_connect:
             if enable:
+                logger.debug('Sending enable command to %s', hostinfo)
                 net_connect.enable()
 
-            for cmd, filename in zip(cmds, filenames):
+            for fname, cmd in filecmdlist.items():
+                logger.debug('Sending command "%s" to %s', cmd, hostinfo)
                 output = net_connect.send_command(cmd)
 
                 if cmd == 'getcurrentconfig': # uu decode this text
                     output = uu_to_xml(output, logger)
 
-                logger.debug('Received output from command, "%s":', cmd)
+                logger.debug('Received output from command "%s" from %s',
+                             cmd, hostinfo)
 
-                if output:
-                    # Q-flex modems can be flaky over-the-air, so
-                    # we may want to verify an end string to assure us
-                    # that we received uncorrupted data.
-                    if ending and not output.endswith(ending):
-                        logger.error('Unsaved to %s. Data does end with "%s"',
-                                     filename, ending)
-                        writefile = False
-                    else:
-                        writefile = True
-
-                    logger.debug(output)
-
-                    if writefile:
-                        logger.debug('Saving output, "%s"' % output)
-                        with open(filename, 'w') as filep:
-                            filep.write(output)
-                        logger.info('Saved to %s.', filename)
+                # Q-flex modems can be flaky over-the-air, so we may
+                # get empty data or we may want to verify an end string
+                # to assure us that we received uncorrupted data
+                if not output or (ending and not output.endswith(ending)):
+                    logger.error('Unsaved output from %s to %s. ' +
+                                 'Data is empty or has a bad ending.',
+                                 hostinfo, fname)
                 else:
-                    logger.warning('Unsaved to %s. Data is empty.', filename)
+                    with open(fname, 'w') as filep:
+                        filep.write(output)
+                    logger.info('Saved output from %s to %s.', hostinfo, fname)
 
         logger.info('Disconnect from %s', hostinfo)
 
     except (IOError, ValueError, socket.error, SSHException,
             NetMikoTimeoutException, NetMikoAuthenticationException) as err:
         logger.info('Error with %s: "%s".', hostinfo, err)
-#pylint: enable=too-many-arguments
 
 def uu_to_xml(uue, logger):
     '''Take UUEncoded tar.gz data, return the contents of
@@ -119,56 +111,50 @@ def cfgworker(host, loglevel,
     logger = setup_logger('collectqflex_%s' % host,
                           os.path.join(log_dir, 'collectqflex.%s.log' % host),
                           level=loglevel)
-    filebname = re.sub(r'\W', '_', host.split('.')[0])
-    destination_dir = os.path.realpath(destination_dir)
+    bname = re.sub(r'\W', '_', host.split('.')[0])
+    destdir = os.path.realpath(destination_dir)
 
     # Quagga vars
-    qcmds = ['show running-config']
     if quagga_ports is None:
         quagga_ports = {'zebrad': 2601, 'bgpd': 2605}
 
-    # PUP vars
-    pcmds = ['getcurrentconfig', 'getcurrent']
-    pfilenames = [os.path.join(destination_dir, 'q-flex',
-                               '%s.%s' % (filebname, 'conf')),
-                  os.path.join(destination_dir, 'q-flex', 'txt',
-                               '%s.%s' % (filebname, 'conf'))]
+    qflex_defaults = {
+        'blocking_timeout': blocking_timeout,
+        'global_delay_factor': global_delay_factor,
+        'host': host
+    }
 
     logger.info('BEGIN %s', host)
-    get_qflex_data(pfilenames, pcmds, logger,
-                   {
-                       'blocking_timeout': blocking_timeout,
+    get_qflex_data([{os.path.join(destdir, '.'.join((bname, 'conf'))): 'getcurrentconfig'},
+                    {os.path.join(destdir, 'txt', '.'.join((bname, 'conf'))): 'getcurrent'},
+                   ],
+                   dict(qflex_defaults.items() + {
                        'device_type': device_type,
-                       'global_delay_factor': global_delay_factor,
-                       'host': host,
                        'password': password,
                        'port': port,
                        'username': username,
-                   })
+                   }.items()),
+                   logger)
 
     # Collect Quagga data if DynamicRoutingEnable = On
     try:
-        with open(pfilenames[0], 'r') as filep:
-            default_conf = filep.read()
+        with open(os.path.join(destdir, '%s.%s' % (bname, 'conf')), 'r') as filep:
+            conf = filep.read()
     except IOError:
-        default_conf = ''
+        conf = ''
 
-    if '<set name="DynamicRouterEnable" value="On" />' in default_conf:
+    if '<set name="DynamicRouterEnable" value="On" />' in conf:
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
-        for qname, qport in quagga_ports:
-            get_qflex_data([os.path.join(destination_dir, 'q-flex', 'quagga',
-                                         '%s.%s.%s' % (filebname, qname, 'conf'))],
-                           qcmds,
-                           logger,
-                           {
-                               'blocking_timeout': blocking_timeout,
+        for qname, qport in quagga_ports.items():
+            qfname = os.path.join(destdir, 'quagga', '.'.join((bname, qname, 'conf')))
+            get_qflex_data([{qfname: 'show running-config'}],
+                           dict(qflex_defaults.items() + {
                                'device_type': 'cisco_ios_telnet',
-                               'global_delay_factor': global_delay_factor,
-                               'host': host,
                                'password': quagga_password,
                                'port': qport,
                                'secret': quagga_password,
-                           },
+                           }.items()),
+                           logger,
                            enable=True,
                            ending='end')
 
