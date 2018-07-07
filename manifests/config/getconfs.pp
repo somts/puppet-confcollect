@@ -1,9 +1,9 @@
 # SCP (via Netmiko) config grabber class.
 class confcollect::config::getconfs(
-  Optional[Stdlib::Absolutepath]          $repodir      = undef,
-  Hash                                    $ini_settings = {},
-  Optional[Variant[String,Integer,Array]] $hour         = undef,
-  Optional[Variant[String,Integer,Array]] $minute       = undef,
+  Optional[Stdlib::Absolutepath]          $repodir  = undef,
+  Hash                                    $settings = {},
+  Optional[Variant[String,Integer,Array]] $hour     = undef,
+  Optional[Variant[String,Integer,Array]] $minute   = undef,
 ) {
   include confcollect
 
@@ -15,9 +15,9 @@ class confcollect::config::getconfs(
 
   $hour_offset  = fqdn_rand(8,$name)
 
-  $_ini_settings = empty($confcollect::getconfs_ini_settings) ? {
-    true    => $ini_settings,
-    default => $confcollect::getconfs_ini_settings,
+  $_settings = empty($confcollect::getconfs_settings) ? {
+    true    => $settings,
+    default => $confcollect::getconfs_settings,
   }
 
   # By default, we try and collect 3 times a day. We need the hour and
@@ -45,12 +45,11 @@ class confcollect::config::getconfs(
   file {
     "${confcollect::config::_homedir}/etc/getconfs.yaml":
       * => $file_defaults + {
-        content => to_yaml($_ini_settings),
+        content => to_yaml($_settings),
       };
     "${confcollect::config::_homedir}/etc/getconfs.ini":
       * => $file_defaults + {
         ensure  => 'absent',
-        content => template('confcollect/getconfs.erb'),
       };
     "${confcollect::config::_homedir}/bin/getconfs.py" :
       * => $file_defaults + {

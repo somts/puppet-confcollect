@@ -14,11 +14,11 @@ class confcollect(
   Optional[String] $gid         = $confcollect::params::gid,
   Optional[Array] $sshkeys      = $confcollect::params::sshkeys,
   Optional[Array] $groups       = $confcollect::params::groups,
+  Hash $getconfs_settings       = {},
   Optional[Stdlib::Absolutepath] $homedir
   = $confcollect::params::homedir,
   Optional[Stdlib::Absolutepath] $repobasedir
   = $confcollect::params::repobasedir,
-  Hash $getconfs_ini_settings   = {},
 ) inherits confcollect::params {
 
   Class['confcollect::install']-> Class['confcollect::config']
