@@ -127,8 +127,8 @@ def cfgworker(host, loglevel,
     }
 
     logger.info('BEGIN %s', host)
-    get_qflex_data({os.path.join(destdir, '.'.join((bname, 'conf'))): 'getcurrentconfig'),
-                    os.path.join(destdir, 'txt', '.'.join((bname, 'conf'))): 'getcurrent')},
+    get_qflex_data({os.path.join(destdir, '.'.join((bname, 'conf'))): 'getcurrentconfig',
+                    os.path.join(destdir, 'txt', '.'.join((bname, 'conf'))): 'getcurrent'},
                    dict(qflex_defaults.items() + {
                        'device_type': device_type,
                        'password': password,
@@ -148,7 +148,9 @@ def cfgworker(host, loglevel,
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
         for qname, qport in quagga_ports.items():
             get_qflex_data({os.path.join(destdir, 'quagga',
-                            '.'.join((bname, qname, 'conf'))): 'show running-config'},
+                                         '.'.join((bname, qname, 'conf'))): \
+                                             'show running-config',
+                           },
                            dict(qflex_defaults.items() + {
                                'device_type': 'cisco_ios_telnet',
                                'password': quagga_password,
