@@ -3,6 +3,7 @@
 Talk to various devices, get their config and store.
 '''
 # Import python built-ins
+import csv
 import os
 import re
 import tarfile
@@ -38,7 +39,10 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
                 output = net_connect.send_command(cmd)
 
                 if cmd == 'getcurrentconfig': # uu decode this text
-                    output = uu_to_xml(output, logger)
+                    output = uu_to_modemconfig(output, logger)
+
+                elif cmd == 'getcurrent': # sanity-check this text
+                    output = check_getcurrent(output, logger)
 
                 logger.debug('Received output from command "%s" from %s',
                              cmd, hostinfo)
@@ -46,9 +50,12 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
                 # Q-flex modems can be flaky over-the-air, so we may
                 # get empty data or we may want to verify an end string
                 # to assure us that we received uncorrupted data
-                if not output or (ending and not output.endswith(ending)):
+                if ending and not output.endswith(ending):
                     logger.error('Unsaved output from %s to %s. ' +
-                                 'Data is empty or has a bad ending.',
+                                 'Data has bad ending.',
+                                 hostinfo, fname)
+                elif not output:
+                    logger.error('Unsaved output from %s to %s. Data is empty.',
                                  hostinfo, fname)
                 else:
                     with open(fname, 'w') as filep:
@@ -61,7 +68,22 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
             NetMikoTimeoutException, NetMikoAuthenticationException) as err:
         logger.info('Error with %s: "%s".', hostinfo, err)
 
-def uu_to_xml(uue, logger):
+def check_getcurrent(text, logger):
+    ''' We expect a bunch of lines that are essentially key=value\n.
+        Parse for that and return None when we do not get it. '''
+
+    # CSV reader needs a list or file to read.
+    data = csv.reader(text.splitlines(), delimiter='=')
+    try:
+        dict([(row[0], row[1]) for row in data])
+    except IndexError:
+        logger.error('Unable to parse output from `getcurrent`. ' +
+                     'Set output to None.')
+        return None
+
+    return text
+
+def uu_to_modemconfig(uue, logger):
     '''Take UUEncoded tar.gz data, return the contents of
     default.conf, which is really quasi-XML data'''
 
@@ -81,11 +103,11 @@ def uu_to_xml(uue, logger):
     # The data is a tarball. Get default.conf out of it.
     with tarfile.open(name=uuout.name, mode='r') as tar:
         filep = tar.extractfile('default.conf')
-        xml = filep.read()
+        modemconfig = filep.read()
         filep.close()
     os.unlink(uuout.name)
 
-    return xml
+    return modemconfig
 
 #pylint: disable=too-many-arguments
 #pylint: disable=too-many-locals
