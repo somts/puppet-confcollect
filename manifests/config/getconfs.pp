@@ -43,13 +43,11 @@ class confcollect::config::getconfs(
   # MANAGED RESOURCES
 
   file {
-    "${confcollect::config::_homedir}/etc/getconfs.yaml":
+    "${confcollect::config::_homedir}/etc/getconfs.ini": { ensure => 'absent' };
+    "${confcollect::config::_homedir}/etc/getconfs.yaml":{ ensure => 'absent' };
+    "${confcollect::config::_homedir}/etc/getconfs.json":
       * => $file_defaults + {
-        content => to_yaml($_settings),
-      };
-    "${confcollect::config::_homedir}/etc/getconfs.ini":
-      * => $file_defaults + {
-        ensure  => 'absent',
+        content => to_json_pretty($_settings),
       };
     "${confcollect::config::_homedir}/bin/getconfs.py" :
       * => $file_defaults + {

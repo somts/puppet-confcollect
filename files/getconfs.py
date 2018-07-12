@@ -17,7 +17,7 @@ from logging import INFO
 from multiprocessing.dummy import Pool
 from multiprocessing.dummy import cpu_count
 from pprint import pformat
-import yaml
+import json
 
 # Import custom libs from ../lib/python, relative to this file...
 #pylint: disable=wrong-import-position
@@ -43,8 +43,8 @@ def get_arguments():
     # a fairly generous multiple of our CPUs ...
     pool_size = cpu_count() * 16
     log_dir = path.join('/var', 'log', getuser())
-    myyaml = path.join(path.dirname(path.dirname(path.abspath(__file__))),
-                       'etc', 'getconfs.yaml')
+    myjson = path.join(path.dirname(path.dirname(path.abspath(__file__))),
+                       'etc', 'getconfs.json')
 
     # Set up args
     parser = ArgumentParser()
@@ -60,9 +60,9 @@ def get_arguments():
     parser.add_argument('-l', '--logdir', action='store',
                         default=log_dir, dest='log_dir',
                         help='Log dir to store logs in. Default: %s.' % log_dir)
-    parser.add_argument('-y', '--yaml', action='store',
-                        dest='yaml', default=myyaml,
-                        help='.yaml file to use for config. Default: %s' % yaml)
+    parser.add_argument('-j', '--json', action='store',
+                        dest='json', default=myjson,
+                        help='.json file to use for config. Default: %s' % json)
 
     return parser.parse_args()
 
@@ -107,8 +107,8 @@ def main():
     else:
         loglevel = INFO
 
-    with open(args.yaml, 'r') as filep:
-        config = yaml.load(filep)
+    with open(args.json, 'r') as filep:
+        config = json.load(filep)
 
     if config.has_key('DEFAULT'):
         defaults = config.pop('DEFAULT')
