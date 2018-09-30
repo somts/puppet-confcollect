@@ -3,23 +3,24 @@
 class confcollect(
   Hash $repos,
   String $ssh_id,
-  String $hostname              = $confcollect::params::hostname,
-  String $owner                 = $confcollect::params::owner,
-  String $comment               = $confcollect::params::comment,
-  String $password              = $confcollect::params::password,
-  Array $packages               = $confcollect::params::packages,
-  Boolean $enable_getconfs      = $confcollect::params::enable_getconfs,
-  Optional[Array] $pip_packages = $confcollect::params::pip_packages,
-  Optional[String] $uid         = $confcollect::params::uid,
-  Optional[String] $gid         = $confcollect::params::gid,
-  Optional[Array] $sshkeys      = $confcollect::params::sshkeys,
-  Optional[Array] $groups       = $confcollect::params::groups,
-  Hash $getconfs_settings       = {},
-  Optional[Stdlib::Absolutepath] $homedir
-  = $confcollect::params::homedir,
-  Optional[Stdlib::Absolutepath] $repobasedir
-  = $confcollect::params::repobasedir,
-) inherits confcollect::params {
+  String $hostname,
+  String $owner,
+  String $group,
+  String $comment,
+  String $password,
+  Array $packages,
+  Boolean $enable_getconfs,
+  Optional[Array] $pip_packages,
+  Optional[String] $uid,
+  Optional[String] $gid,
+  Optional[Array] $sshkeys,
+  Optional[Array] $groups,
+  Hash $getconfs_settings,
+  Optional[Stdlib::Absolutepath] $homedir,
+  Optional[Stdlib::Absolutepath] $repobasedir,
+) {
+  # VALIDATION
+  validate_re($::kernel,'^Linux$',"${::operatingsystem} unsupported")
 
   Class['confcollect::install']-> Class['confcollect::config']
 

@@ -68,7 +68,7 @@ describe 'confcollect' do
         :repos                 => { 'pfsense' => {
           'source' => 'https://example.com/pfsense.git'}
         },
-        :getconfs_ini_settings => {
+        :getconfs_settings => {
           'DEFAULT'     => {
             'repo_dir'        => '/foo/bar',
             'destination_dir' => '/foo/bar/baz',
@@ -87,19 +87,15 @@ describe 'confcollect' do
         :owner  => 'confcollect',
         :group  => 'confcollect',
       }).that_comes_before('Cron[getconfs]') }
-      it { should contain_file('/home/confcollect/etc/getconfs.ini').with({
+      it { should contain_file('/home/confcollect/etc/getconfs.json').with({
         :ensure  => 'file',
         :mode    => '0600',
         :owner   => 'confcollect',
         :group   => 'confcollect',
-        :content => /^; THIS FILE MANANGED BY PUPPET.\n/,
+        :content => /^{\n  "DEFAULT": {\n/,
       }).that_comes_before('Cron[getconfs]') }
       it { should contain_cron('getconfs').with_user('confcollect') }
     end
-  end
-
-  shared_examples 'Darwin' do
-    it { should_not compile.with_all_deps }
   end
 
   shared_examples 'Debian' do
@@ -112,38 +108,15 @@ describe 'confcollect' do
     it_behaves_like 'Supported Platform'
   end
 
-  [ { :osfamily                  => 'RedHat' ,
-      :kernel                    => 'Linux',
-      :architecture              => 'x86_64',
-      :puppetversion             => '4.10.5',
-      :operatingsystemmajrelease => '7',
-      :operatingsystemrelease    => '7.4.1708',
-      :operatingsystem           => 'CentOS',
-    },
-    { :osfamily                  => 'Debian' ,
-      :kernel                    => 'Linux',
-      :architecture              => 'amd64' ,
-      :lsbdistcodename           => 'xenial',
-      :puppetversion             => '4.10.5',
-      :operatingsystemrelease    => '16.04',
-      :operatingsystemmajrelease => '16.04',
-      :operatingsystem           => 'Ubuntu',
-    },
-    { :osfamily                  => 'Darwin' ,
-      :kernel                    => 'Darwin',
-      :architecture              => 'x86_64',
-      :puppetversion             => '4.10.5',
-      :operatingsystemrelease    => '17.3.0',
-      :operatingsystem           => 'Darwin',
-    },
-  ].each do |myfacts|
-    context myfacts[:osfamily] do
-      let :facts do myfacts end
-
-      case myfacts[:osfamily]
-      when 'Darwin'  then it_behaves_like 'Darwin'
-      when 'Debian'  then it_behaves_like 'Debian'
-      when 'RedHat'  then it_behaves_like 'RedHat'
+  on_supported_os.each do |os, facts|
+    context "on #{os}" do
+      let :facts do
+        facts
+      end
+      case facts[:osfamily]
+      when 'Debian' then it_behaves_like 'Debian'
+      when 'RedHat' then it_behaves_like 'RedHat'
+      else it_behaves_like 'Unsupported Platform'
       end
     end
   end

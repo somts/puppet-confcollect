@@ -35,7 +35,7 @@ class confcollect::config::files {
         ensure  => 'file',
         content => $confcollect::ssh_id,
         mode    => '0600',
-     };
+      };
     "${confcollect::config::_homedir}/lib/python/gitcheck.py":
       * => $file_defaults + {
         ensure  => 'file',

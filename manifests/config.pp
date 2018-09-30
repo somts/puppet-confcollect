@@ -15,11 +15,11 @@ class confcollect::config {
   }
 
   # MANAGED RESOURCES
-  Class['confcollect::config::accounts'] ->
-  Class['confcollect::config::files'] ->
-  Class['confcollect::config::git'] ->
-  Class['confcollect::config::log'] ->
-  Class['confcollect::config::repo']
+  Class['confcollect::config::accounts']
+  -> Class['confcollect::config::files']
+  -> Class['confcollect::config::git']
+  -> Class['confcollect::config::log']
+  -> Class['confcollect::config::repo']
 
   contain confcollect::config::accounts
   contain confcollect::config::files
