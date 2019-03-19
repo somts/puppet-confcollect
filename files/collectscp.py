@@ -54,7 +54,9 @@ def cfgworker(host, loglevel,
             except (SCPException, SSHException) as err:
                 logger.error('Error with %s: %s', host, err)
 
-    except (NetMikoTimeoutException, NetMikoAuthenticationException) as err:
+    except (SSHException,
+            NetMikoTimeoutException,
+            NetMikoAuthenticationException) as err:
         logger.error('Error with %s: %s', host, err)
 
     logger.info('END %s', host)
