@@ -10,10 +10,11 @@
 from os import path
 from subprocess import check_output, CalledProcessError
 from tempfile import NamedTemporaryFile
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from somtsfilelog import setup_logger
 
+#pylint: disable=inconsistent-return-statements
 def get_csrf_magic(mystr):
     '''Take a string of pfSense WUI data and extract the CSRF token'''
     objects = mystr.split()
@@ -24,6 +25,7 @@ def get_csrf_magic(mystr):
 
             # return the string between quotes
             return csrf[csrf.find('"')+1:-1]
+#pylint: enable=inconsistent-return-statements
 
 #pylint: disable=too-many-arguments
 #pylint: disable=too-many-locals

@@ -18,7 +18,7 @@ class confcollect::config::repo {
   # MANAGED RESOURCES
 
   $confcollect::repos.each |String $dir, Hash $settings| {
-    vcsrepo { "${confcollect::config::_repobasedir}/${dir}":
+    vcsrepo { "${confcollect::_repobasedir}/${dir}":
       * => $repo_defaults + $settings
     }
   }

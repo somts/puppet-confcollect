@@ -1,3 +1,4 @@
+# THIS FILE MANANGED BY PUPPET.
 '''Set up logging, SOMTS-style'''
 
 import logging

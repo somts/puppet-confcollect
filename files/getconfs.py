@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # THIS FILE MANANGED BY PUPPET.
 ''' getconfs.py
@@ -15,7 +15,7 @@ from logging import DEBUG
 from logging import ERROR
 from logging import INFO
 from multiprocessing.dummy import Pool
-from multiprocessing.dummy import cpu_count
+from multiprocessing import cpu_count
 from pprint import pformat
 import json
 
@@ -39,9 +39,9 @@ def get_arguments():
 
     # Calculate some defaults
 
-    # Most of the CPU time is spent waiting for remote hosts, so we can use
-    # a fairly generous multiple of our CPUs ...
-    pool_size = cpu_count() * 16
+    # Most of the CPU time is spent waiting for remote hosts, so we can
+    # use a fairly generous multiple of our CPUs ...
+    pool_size = cpu_count() * 32
     log_dir = path.join('/var', 'log', getuser())
     myjson = path.join(path.dirname(path.dirname(path.abspath(__file__))),
                        'etc', 'getconfs.json')
@@ -136,7 +136,7 @@ def main():
         jobs.append(((host, loglevel), merged))
 
         # Add any unique repo dirs to our set.
-        if merged.has_key('repo_dir'):
+        if 'repo_dir' in merged:
             repo_dirs.add(merged['repo_dir'])
 
     logger.debug("Jobs built:\n%s", pformat(jobs))

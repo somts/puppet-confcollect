@@ -47,7 +47,7 @@ def cfgworker(host, loglevel,
                 requests.exceptions.ConnectionError) as err:
             logger.info('Error with %s: "%s".', host, err)
     else:
-        logger.warn('username/password unsupported for collectadvnatech')
+        logger.warning('username/password unsupported for collectadvnatech')
 
     logger.debug('Done talking to %s.', url)
 

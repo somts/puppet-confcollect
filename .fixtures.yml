@@ -1,10 +1,11 @@
 fixtures:
+  symlinks:
+    profile: "#{File.dirname(source_dir)}/confcollect"
   forge_modules:
     accounts: 'puppetlabs/accounts'
     git: 'puppetlabs/git'
     epel: 'stahnma/epel'
-    inifile: 'puppetlabs/inifile'
     logrotate: 'puppet/logrotate'
-    python: 'stankevich-python'
+    python: 'puppet-python'
     stdlib: 'puppetlabs/stdlib'
     vcsrepo: 'puppetlabs/vcsrepo'

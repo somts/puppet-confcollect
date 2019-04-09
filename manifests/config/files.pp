@@ -16,39 +16,18 @@ class confcollect::config::files {
   # MANAGED RESOURCES
 
   file {
-    $confcollect::config::_repobasedir: * => $file_defaults;
-    "${confcollect::config::_homedir}/staging": * => $file_defaults;
+    $confcollect::_repobasedir: * => $file_defaults;
+    "${confcollect::_homedir}/staging": * => $file_defaults;
     "/var/log/${confcollect::owner}": * => $file_defaults + { mode => '2755' };
-    "${confcollect::config::_homedir}/bin":
+    "${confcollect::_homedir}/bin":
       * => $file_defaults + { purge => true, recurse => true };
-    "${confcollect::config::_homedir}/etc":
+    "${confcollect::_homedir}/etc":
       * => $file_defaults + { purge => true, recurse => true };
-    "${confcollect::config::_homedir}/lib":
-      * => $file_defaults + { purge => true, recurse => true };
-    # .pyc files amass here, so no purging....
-    "${confcollect::config::_homedir}/lib/python":
-      * => $file_defaults + {
-        require => File["${confcollect::config::_homedir}/lib"],
-      };
-    "${confcollect::config::_homedir}/.ssh/id_rsa":
+    "${confcollect::_homedir}/.ssh/id_rsa":
       * => $file_defaults + {
         ensure  => 'file',
         content => $confcollect::ssh_id,
         mode    => '0600',
-      };
-    "${confcollect::config::_homedir}/lib/python/gitcheck.py":
-      * => $file_defaults + {
-        ensure  => 'file',
-        source  => 'puppet:///modules/confcollect/gitcheck.py',
-        mode    => '0600',
-        require => File["${confcollect::config::_homedir}/lib/python"],
-      };
-    "${confcollect::config::_homedir}/lib/python/somtsfilelog.py":
-      * => $file_defaults + {
-        ensure  => 'file',
-        source  => 'puppet:///modules/confcollect/somtsfilelog.py',
-        mode    => '0600',
-        require => File["${confcollect::config::_homedir}/lib/python"],
       };
   }
 }

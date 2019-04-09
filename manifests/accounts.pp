@@ -1,5 +1,5 @@
 # We want to make a user to collect our stuff via push or pull.
-class confcollect::config::accounts {
+class confcollect::accounts {
 
   # VALIDATION
   assert_private('This class should only be called from the init class')
@@ -9,7 +9,7 @@ class confcollect::config::accounts {
     gid           => $confcollect::gid,
     comment       => $confcollect::comment,
     groups        => $confcollect::groups,
-    home          => $confcollect::config::_homedir,
+    home          => $confcollect::_homedir,
     shell         => '/bin/bash',
     membership    => 'inclusive',
     password      => $confcollect::password,

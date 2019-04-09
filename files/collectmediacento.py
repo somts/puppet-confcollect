@@ -62,7 +62,7 @@ def cfgworker(host, loglevel,
 
         logger.info('%s saved to disk', local_filename)
 
-    except socket.error, err:
+    except socket.error as err:
         logger.error('%s had issues %s.', host, err)
         return
 

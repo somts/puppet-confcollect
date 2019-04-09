@@ -1,0 +1,8 @@
+---
+confcollect::packages:
+  - build-essential
+  - libffi-dev      # build req for netmiko
+  - libssl-dev      # build req for netmiko
+  - python3-venv    # puppet-python v2.2.2 does not seem to install correctly.
+  - wget            # collectpfsense
+...

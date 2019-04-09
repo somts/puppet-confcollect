@@ -1,29 +1,21 @@
-# CLASS VARIABLES
-confcollect::hostname: '%{::fqdn}'
-confcollect::owner: confcollect
-confcollect::group: confcollect
-confcollect::getconfs_settings: {}
+---
 confcollect::comment: 'Configuration Collector Role'
-confcollect::password: '!!'
-confcollect::packages:
-  - wget
-
-# In order for this to work, $python::dev must be true
-confcollect::pip_packages:
-  - configparser
-  - gitpython
-  - netmiko
-  - paramiko
-  - requests
-  - scp
-
-confcollect::uid:
+confcollect::enable_getconfs: false
+confcollect::getconfs_settings: {}
 confcollect::gid:
-confcollect::sshkeys:
+confcollect::group: confcollect
 confcollect::groups:
 confcollect::homedir:
+confcollect::hostname: '%{::fqdn}'
+confcollect::owner: confcollect
+confcollect::packages: [wget]
+confcollect::password: '!!'
+confcollect::python_parameterized: true
+confcollect::python_pip_provider: pip3
+confcollect::python_pips: {GitPython: {}, netmiko: {}, requests: {}}
+confcollect::python_pyvenv:
+confcollect::python_version: python3
 confcollect::repobasedir:
-confcollect::enable_getpfsense: false
-confcollect::enable_getconfs: false
-confcollect::enable_getscp: false
-confcollect::enable_getmediacento: false
+confcollect::sshkeys:
+confcollect::uid:
+...

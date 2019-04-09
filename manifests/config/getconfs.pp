@@ -8,6 +8,8 @@ class confcollect::config::getconfs(
   include confcollect
 
   # CLASS VARIABLES
+  $venv = $confcollect::_python_pyvenv
+
   $cron_ensure = $confcollect::enable_getconfs ? {
     true    => 'present',
     default => 'absent',
@@ -41,50 +43,63 @@ class confcollect::config::getconfs(
   }
 
   # MANAGED RESOURCES
+  create_resources('file',{
+    "${confcollect::_homedir}/etc/getconfs.json"  => {
+      content => to_json_pretty($confcollect::getconfs_settings),
+    },
+    "${confcollect::_homedir}/bin/getconfs"       => {
+      content => template('confcollect/getconfs.epp'),
+      mode    => '0700',
+    },
+    "${confcollect::_python_pyvenv}/getconfs.py"          => {
+      source => 'puppet:///modules/confcollect/getconfs.py',
+    },
+    "${confcollect::_python_pyvenv}/collectadvantech.py"  => {
+      source => 'puppet:///modules/confcollect/collectadvantech.py',
+    },
+    "${confcollect::_python_pyvenv}/collectmediacento.py" => {
+      source => 'puppet:///modules/confcollect/collectmediacento.py',
+    },
+    "${confcollect::_python_pyvenv}/collectpfsense.py"    => {
+      source => 'puppet:///modules/confcollect/collectpfsense.py',
+    },
+    "${confcollect::_python_pyvenv}/collectqflex.py"      => {
+      source => 'puppet:///modules/confcollect/collectqflex.py',
+    },
+    "${confcollect::_python_pyvenv}/collectscp.py"        => {
+      source => 'puppet:///modules/confcollect/collectscp.py',
+    },
+    "${confcollect::_python_pyvenv}/collectssh.py"        => {
+      source => 'puppet:///modules/confcollect/collectssh.py',
+    },
+    "${confcollect::_python_pyvenv}/gitcheck.py"          => {
+        source  => 'puppet:///modules/confcollect/gitcheck.py',
+    },
+    "${confcollect::_python_pyvenv}/somtsfilelog.py"      => {
+        source  => 'puppet:///modules/confcollect/somtsfilelog.py',
+    },
+  },{
+    ensure => 'file',
+    owner  => $confcollect::owner,
+    group  => $confcollect::owner,
+    mode   => '0600',
+    before => Cron['getconfs'],
+  })
 
-  file {
-    "${confcollect::config::_homedir}/etc/getconfs.ini": ensure => 'absent';
-    "${confcollect::config::_homedir}/etc/getconfs.yaml": ensure => 'absent';
-    "${confcollect::config::_homedir}/etc/getconfs.json":
-      * => $file_defaults + {
-        content => to_json_pretty($_settings),
-      };
-    "${confcollect::config::_homedir}/bin/getconfs.py" :
-      * => $file_defaults + {
-        source => 'puppet:///modules/confcollect/getconfs.py',
-        mode   => '0700',
-      };
-    "${confcollect::config::_homedir}/lib/python/collectadvantech.py":
-      * => $file_defaults + {
-        source  => 'puppet:///modules/confcollect/collectadvantech.py',
-      };
-    "${confcollect::config::_homedir}/lib/python/collectmediacento.py":
-      * => $file_defaults + {
-        source  => 'puppet:///modules/confcollect/collectmediacento.py',
-      };
-    "${confcollect::config::_homedir}/lib/python/collectpfsense.py":
-      * => $file_defaults + {
-        source  => 'puppet:///modules/confcollect/collectpfsense.py',
-      };
-    "${confcollect::config::_homedir}/lib/python/collectqflex.py":
-      * => $file_defaults + {
-        source  => 'puppet:///modules/confcollect/collectqflex.py',
-      };
-    "${confcollect::config::_homedir}/lib/python/collectscp.py":
-      * => $file_defaults + {
-        source  => 'puppet:///modules/confcollect/collectscp.py',
-      };
-    "${confcollect::config::_homedir}/lib/python/collectssh.py":
-      * => $file_defaults + {
-        source  => 'puppet:///modules/confcollect/collectssh.py',
-      };
-  }
+  # purge legacy
+  create_resources('file',{
+    "${confcollect::_homedir}/bin/getconfs.py" => {},
+    "${confcollect::_homedir}/lib"             => {
+      purge   => true,
+      recurse => true,
+    },
+  },{ ensure => 'absent' })
 
   cron { 'getconfs':
     ensure  => $cron_ensure,
     user    => $confcollect::owner,
     hour    => $_hour,
     minute  => $_minute,
-    command => "${confcollect::config::_homedir}/bin/getconfs.py -g",
+    command => "${confcollect::_homedir}/bin/getconfs",
   }
 }

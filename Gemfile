@@ -3,7 +3,7 @@ source ENV['GEM_SOURCE'] || 'https://rubygems.org'
 ### Environment variable version overrrides
 
 # Per puppet enterprise 2016.4, set the versions of critical software.
-puppetversion = ENV.key?('PUPPET_VERSION') ? ENV['PUPPET_VERSION'] : '4.10.12'
+puppetversion = ENV.key?('PUPPET_VERSION') ? ENV['PUPPET_VERSION'] : '5.5.10'
 
 # Select compatible version of rubocop
 rubocopversion = RUBY_VERSION < '2.2.0' ? '< 0.58.0' : '>= 0.58.0'
