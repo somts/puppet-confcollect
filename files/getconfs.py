@@ -110,7 +110,7 @@ def main():
     with open(args.json, 'r') as filep:
         config = json.load(filep)
 
-    if config.has_key('DEFAULT'):
+    if 'DEFAULT' in config:
         defaults = config.pop('DEFAULT')
     else:
         defaults = dict()
