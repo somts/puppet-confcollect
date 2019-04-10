@@ -12,7 +12,10 @@ confcollect::packages: [wget]
 confcollect::password: '!!'
 confcollect::python_parameterized: true
 confcollect::python_pip_provider: pip3
-confcollect::python_pips: {GitPython: {}, netmiko: {}, requests: {}}
+confcollect::python_pips:
+  confcollect_GitPython: {pkgname: GitPython}
+  confcollect_netmiko: {pkgname: netmiko}
+  confcollect_requests: {pkgname: requests}
 confcollect::python_pyvenv:
 confcollect::python_version: python3
 confcollect::repobasedir:
