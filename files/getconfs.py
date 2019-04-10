@@ -124,7 +124,8 @@ def main():
     jobs = []
     for section, section_dict in config.items():
         # Merge section with DEFAULT
-        merged = dict(defaults.items() + section_dict.items())
+        merged = defaults.copy()
+        merged.update(section_dict)
 
         # The module name can be the hostname, if present
         try:
