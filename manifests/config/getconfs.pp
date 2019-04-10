@@ -17,11 +17,6 @@ class confcollect::config::getconfs(
 
   $hour_offset  = fqdn_rand(8,$name)
 
-  $_settings = empty($confcollect::getconfs_settings) ? {
-    true    => $settings,
-    default => $confcollect::getconfs_settings,
-  }
-
   # By default, we try and collect 3 times a day. We need the hour and
   # minute set randomly in order to splay out git commits and avoid
   # conflicts with multiple nodes trying to commit to the same branch
@@ -33,13 +28,6 @@ class confcollect::config::getconfs(
   $_minute = $minute ? {
     undef   => fqdn_rand(59,$name),
     default => $minute,
-  }
-  $file_defaults = {
-    ensure => 'file',
-    owner  => $confcollect::owner,
-    group  => $confcollect::owner,
-    mode   => '0600',
-    before => Cron['getconfs'],
   }
 
   # MANAGED RESOURCES
@@ -92,6 +80,7 @@ class confcollect::config::getconfs(
     "${confcollect::_homedir}/lib"             => {
       purge   => true,
       recurse => true,
+      force   => true,
     },
   },{ ensure => 'absent' })
 
