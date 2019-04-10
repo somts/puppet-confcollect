@@ -5,6 +5,6 @@
 # Activate a python3 venv and execute getconfs.py
 
 . <%= $confcollect::_python_pyvenv %>/bin/activate && \
-  python getconfs.py \
+  python <%= $confcollect::_python_pyvenv %>/getconfs.py \
    --json=<%= $confcollect::_homedir %>/etc/getconfs.json \
    --git
