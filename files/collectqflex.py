@@ -149,14 +149,14 @@ def cfgworker(host, loglevel,
     }
 
     logger.info('BEGIN %s', host)
+    myd = qflex_defaults.copy()
+    myd.update({'device_type': device_type,
+                'password': password,
+                'port': port,
+                'username': username})
     get_qflex_data({os.path.join(destdir, '.'.join((bname, 'conf'))): 'getcurrentconfig',
                     os.path.join(destdir, 'txt', '.'.join((bname, 'conf'))): 'getcurrent'},
-                   dict(qflex_defaults.items() + {
-                       'device_type': device_type,
-                       'password': password,
-                       'port': port,
-                       'username': username,
-                   }.items()),
+                   myd,
                    logger)
 
     # Collect Quagga data if DynamicRoutingEnable = On
@@ -169,16 +169,16 @@ def cfgworker(host, loglevel,
     if '<set name="DynamicRouterEnable" value="On" />' in conf:
         logger.info('Routing detected for %s; collect Quagga data, too.', host)
         for qname, qport in quagga_ports.items():
+            myd = qflex_defaults.copy()
+            myd.update({'device_type': 'cisco_ios_telnet',
+                        'password': quagga_password,
+                        'port': qport,
+                        'secret': quagga_password})
             get_qflex_data({os.path.join(destdir, 'quagga',
                                          '.'.join((bname, qname, 'conf'))): \
                                              'show running-config',
                            },
-                           dict(qflex_defaults.items() + {
-                               'device_type': 'cisco_ios_telnet',
-                               'password': quagga_password,
-                               'port': qport,
-                               'secret': quagga_password,
-                           }.items()),
+                           myd,
                            logger,
                            enable=True,
                            ending='end')
