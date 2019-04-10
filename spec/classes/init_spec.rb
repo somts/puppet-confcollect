@@ -30,18 +30,21 @@ describe 'confcollect' do
     it { should contain_package('wget') }
     it { should contain_python__pyvenv('/home/confcollect/pyvenv') }
     it {
-      should contain_python__pip('GitPython').with_virtualenv(
-        '/home/confcollect/pyvenv'
+      should contain_python__pip('confcollect_GitPython').with(
+        pkgname: 'GitPython',
+        virtualenv: '/home/confcollect/pyvenv'
       )
     }
     it {
-      should contain_python__pip('netmiko').with_virtualenv(
-        '/home/confcollect/pyvenv'
+      should contain_python__pip('confcollect_netmiko').with(
+        pkgname: 'netmiko',
+        virtualenv: '/home/confcollect/pyvenv'
       )
     }
     it {
-      should contain_python__pip('requests').with_virtualenv(
-        '/home/confcollect/pyvenv'
+      should contain_python__pip('confcollect_requests').with(
+        pkgname: 'requests',
+        virtualenv: '/home/confcollect/pyvenv'
       )
     }
 
@@ -73,6 +76,14 @@ describe 'confcollect' do
 
     # Config::Files
     it { should contain_file('/home/confcollect/bin').with_ensure('directory') }
+    it {
+      should contain_file('/home/confcollect/bin/getconfs').with(
+        ensure: 'file',
+        owner: 'confcollect',
+        group: 'confcollect',
+        content: /\n\. \/home\/confcollect\/pyvenv\/bin\/activate/
+      )
+    }
     it { should contain_file('/home/confcollect/etc').with_ensure('directory') }
     it { should contain_file('/home/confcollect/src').with_ensure('directory') }
     it {

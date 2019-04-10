@@ -8,8 +8,6 @@ class confcollect::config::getconfs(
   include confcollect
 
   # CLASS VARIABLES
-  $venv = $confcollect::_python_pyvenv
-
   $cron_ensure = $confcollect::enable_getconfs ? {
     true    => 'present',
     default => 'absent',
@@ -36,7 +34,7 @@ class confcollect::config::getconfs(
       content => to_json_pretty($confcollect::getconfs_settings),
     },
     "${confcollect::_homedir}/bin/getconfs"       => {
-      content => template('confcollect/getconfs.epp'),
+      content => epp('confcollect/getconfs.epp'),
       mode    => '0700',
     },
     "${confcollect::_python_pyvenv}/getconfs.py"          => {

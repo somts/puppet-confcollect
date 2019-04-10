@@ -1,8 +1,10 @@
 #!/bin/bash
 # THIS FILE MANAGED BY PUPPET. DO NOT EDIT.
-# ${HOME}/bin/getconfs
+# <%= $confcollect::_homedir %>/bin/getconfs
 #
 # Activate a python3 venv and execute getconfs.py
 
-. <%= $venv %>/bin/activate && \
-  python getconfs.py --json=${HOME}/etc/getconfs.json --git
+. <%= $confcollect::_python_pyvenv %>/bin/activate && \
+  python getconfs.py \
+   --json=<%= $confcollect::_homedir %>/etc/getconfs.json \
+   --git
