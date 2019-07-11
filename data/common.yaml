@@ -8,7 +8,7 @@ confcollect::groups:
 confcollect::homedir:
 confcollect::hostname: '%{::fqdn}'
 confcollect::owner: confcollect
-confcollect::packages: [wget]
+confcollect::packages:
 confcollect::password: '!!'
 confcollect::python_parameterized: true
 confcollect::python_pip_provider: pip3
@@ -17,7 +17,7 @@ confcollect::python_pips:
   confcollect_netmiko: {pkgname: netmiko}
   confcollect_requests: {pkgname: requests}
 confcollect::python_pyvenv:
-confcollect::python_version: python3
+confcollect::python_version: 'python3.6'
 confcollect::repobasedir:
 confcollect::sshkeys:
 confcollect::uid:

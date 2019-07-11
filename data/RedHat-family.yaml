@@ -1,0 +1,8 @@
+---
+confcollect::packages:
+  - gcc
+  - gcc-c++
+  - glibc-devel    # build req for netmiko
+  - openssl-devel  # build req for netmiko
+  - wget           # collectpfsense
+...

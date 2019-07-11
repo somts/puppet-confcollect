@@ -16,6 +16,7 @@ class confcollect::install {
       virtualenv => 'absent', # use Python 3's built-in, pyvenv instead
       require    => [Class['git'],Package[$confcollect::packages]],
     }
+    Python::Pyvenv { version => $confcollect::python_version }
   } else {
     # We may want to avoid paramterizing puppet-python, in which case
     # some of the above parameters should be set in the control repo.
