@@ -14,6 +14,7 @@ from scp import SCPException
 from somtsfilelog import setup_logger
 
 #pylint: disable-msg=too-many-arguments
+#pylint: disable-msg=too-many-locals
 def cfgworker(host, loglevel,
               device_type='cisco_ios',
               username='admin',
@@ -22,7 +23,8 @@ def cfgworker(host, loglevel,
               remote_filename='nvram:startup-config',
               log_dir='/tmp',
               filename_extension='cfg',
-              local_filename=None
+              local_filename=None,
+              sort=False
              ):
     '''Multiprocessing worker for get_cfg()'''
 
@@ -51,6 +53,18 @@ def cfgworker(host, loglevel,
                 logger.info('Config for %s:%s transferred successfully to %s.',
                             host, remote_filename, local_filename)
                 scp_conn.close()
+
+                # files like esx.conf come to us in varying order,
+                # which makes some of the changes we track not very
+                # helpful. So, we offer a way to sort the file lines
+                # to work around issues like that.
+                if sort:
+                    logger.info('Sorting contents of %s', local_filename)
+                    with open(local_filename, 'r+') as filep:
+                        sortf = sorted(filep)   # sort file
+                        filep.seek(0)           # goto start of file
+                        filep.writelines(sortf) # overwrite
+                        filep.truncate()        # cut off any remainder
             except (SCPException, SSHException) as err:
                 logger.error('Error with %s: %s', host, err)
 
@@ -60,4 +74,5 @@ def cfgworker(host, loglevel,
         logger.error('Error with %s: %s', host, err)
 
     logger.info('END %s', host)
+#pylint: enable-msg=too-many-locals
 #pylint: enable-msg=too-many-arguments
