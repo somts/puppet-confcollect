@@ -30,6 +30,8 @@ class confcollect::install {
   }
 
   create_resources('python::pip', $confcollect::python_pips, {
+    owner        => $confcollect::owner,
+    group        => $confcollect::group,
     pip_provider => $confcollect::python_pip_provider,
     virtualenv   => $confcollect::_python_pyvenv,
     require      => Python::Pyvenv[$confcollect::_python_pyvenv],
