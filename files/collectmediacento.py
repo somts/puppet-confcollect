@@ -39,6 +39,7 @@ def cfgworker(host, loglevel,
         local_filename = path.join(path.realpath(destination_dir),
                                    '%s.%s' % (host.split('.')[0],
                                               filename_extension))
+    #pylint: disable-msg=broad-except
     try:
         tel = Telnet(host, port)
 
@@ -63,8 +64,12 @@ def cfgworker(host, loglevel,
         logger.info('%s saved to disk', local_filename)
 
     except socket.error as err:
-        logger.error('%s had issues %s.', host, err)
+        logger.error('Error with %s: %s', host, err)
         return
+    except Exception as err:
+        logger.error('Unexpected error with %s: %s', host, err)
+        return
+    #pylint: enable-msg=broad-except
 
     logger.info('END %s', host)
 #pylint: enable=too-many-arguments

@@ -38,6 +38,7 @@ def cfgworker(host, loglevel,
                                    '%s.%s' % (host.split('.')[0],
                                               filename_extension))
 
+    #pylint: disable-msg=broad-except
     try:
         logger.debug('Attempt to SSH to host %s, device type %s',
                      host, device_type)
@@ -65,13 +66,19 @@ def cfgworker(host, loglevel,
                         filep.seek(0)           # goto start of file
                         filep.writelines(sortf) # overwrite
                         filep.truncate()        # cut off any remainder
-            except (SCPException, SSHException) as err:
+            except (EOFError, SCPException, SSHException) as err:
                 logger.error('Error with %s: %s', host, err)
+            except Exception as err:
+                logger.error('Unexpected error with %s: %s', host, err)
 
-    except (SSHException,
+    except (EOFError,
+            SSHException,
             NetMikoTimeoutException,
             NetMikoAuthenticationException) as err:
         logger.error('Error with %s: %s', host, err)
+    except Exception as err:
+        logger.error('Unexpected error with %s: %s', host, err)
+    #pylint: enable-msg=broad-except
 
     logger.info('END %s', host)
 #pylint: enable-msg=too-many-locals

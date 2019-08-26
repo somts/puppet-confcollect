@@ -28,6 +28,7 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
                                nm_kwargs['device_type'])
 
     logger.info('Connect to %s', hostinfo)
+    #pylint: disable-msg=broad-except
     try:
         with ConnectHandler(**nm_kwargs) as net_connect:
             if enable:
@@ -67,6 +68,9 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
     except (IOError, ValueError, socket.error, SSHException,
             NetMikoTimeoutException, NetMikoAuthenticationException) as err:
         logger.info('Error with %s: "%s".', hostinfo, err)
+    except Exception as err:
+        logger.error('Unexpected error with %s: %s', hostinfo, err)
+    #pylint: enable-msg=broad-except
 
 def check_getcurrent(text, logger):
     ''' We expect a bunch of lines that are essentially key=value\n.

@@ -54,6 +54,7 @@ def cfgworker(host, loglevel,
                         (dest_username, dest_password,
                          dest_host, dest_basename)])
 
+    #pylint: disable-msg=broad-except
     try:
         logger.debug('Attempt to connect to host %s, device type %s',
                      host, device_type)
@@ -73,6 +74,9 @@ def cfgworker(host, loglevel,
 
     except NetMikoTimeoutException as err:
         logger.error('Error with %s: %s', host, err)
+    except Exception as err:
+        logger.error('Unexpected error with %s: %s', host, err)
+    #pylint: enable-msg=broad-except
 
     logger.info('END %s', host)
 #pylint: enable-msg=too-many-arguments
