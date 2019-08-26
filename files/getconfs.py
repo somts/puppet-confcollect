@@ -26,7 +26,6 @@ sys.path.append(path.join(path.dirname(path.dirname(path.abspath(__file__))),
                           'python'))
 import collectadvantech
 import collectmediacento
-import collectpfsense
 import collectqflex
 import collectscp
 import collectssh
