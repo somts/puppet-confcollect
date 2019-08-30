@@ -3,12 +3,12 @@
 Talk to various devices, get their config and store.
 '''
 # Import python built-ins
+import binascii
 import csv
 import os
 import re
 import tarfile
 import socket
-import uu
 from tempfile import NamedTemporaryFile
 
 # Import modules that tend to need a special install
@@ -40,7 +40,7 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
                 output = net_connect.send_command(cmd)
 
                 if cmd == 'getcurrentconfig': # uu decode this text
-                    output = uu_to_modemconfig(output, logger)
+                    output = uu_to_modemconfig(output)
 
                 elif cmd == 'getcurrent': # sanity-check this text
                     output = check_getcurrent(output, logger)
@@ -65,7 +65,7 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
 
         logger.info('Disconnect from %s', hostinfo)
 
-    except (IOError, ValueError, socket.error, SSHException,
+    except (IOError, TypeError, ValueError, socket.error, SSHException,
             NetMikoTimeoutException, NetMikoAuthenticationException) as err:
         logger.info('Error with %s: "%s".', hostinfo, err)
     except Exception as err:
@@ -87,30 +87,33 @@ def check_getcurrent(text, logger):
 
     return text
 
-def uu_to_modemconfig(uue, logger):
-    '''Take UUEncoded tar.gz data, return the contents of
-    default.conf, which is really quasi-XML data'''
+def uu_to_modemconfig(uustr):
+    '''Take UUEncoded tar.gz data in the form of a string, return the
+    ASCII contents of default.conf, which is really quasi-XML data'''
 
-    # Write down our UUE data, decode
-    with NamedTemporaryFile(suffix='.txt') as uuin:
-        uuin.write(uue)
-        uuin.seek(0)
-        # Need a temporary filename for our .tar.gz file
-        uuout = NamedTemporaryFile(suffix='.tgz', delete=False)
-        os.unlink(uuout.name)
-        try:
-            uu.decode(uuin.name, uuout.name)
-        except uu.Error as err:
-            logger.error('Error with UUE data: %s', err)
-            return None
+    # Python changed the way it handles strings and binary data to be
+    # more explicit in Python 3. As a result, when taking ASCII-based
+    # UU data and converting to binary, things get trickier.  The
+    # binascii module in Python is well suited to handle this.
 
-    # The data is a tarball. Get default.conf out of it.
-    with tarfile.open(name=uuout.name, mode='r') as tar:
-        filep = tar.extractfile('default.conf')
-        modemconfig = filep.read()
-        filep.close()
-    os.unlink(uuout.name)
+    # Take unicode string and convert each UU line to binary, stripping
+    # the first and last line in the process.  The 'begin' and 'end'
+    # characters on these lines are illegal chars in the binascii
+    # module (but not the uu module that we used to use).
+    blines = b''
+    for line in uustr.splitlines()[1:-1]:
+        blines += binascii.a2b_uu(line)
 
+    # Write down uu-decoded binary data, which is a .tgz file
+    with NamedTemporaryFile(suffix='.tgz', mode='wb') as tgz:
+        tgz.write(blines)
+        tgz.seek(0)
+
+        # Read .tgz file
+        with tarfile.open(name=tgz.name, mode='r') as tar:
+            # Unpack default.conf
+            with tar.extractfile('default.conf') as filep:
+                modemconfig = filep.read().decode()  # decode to ascii
     return modemconfig
 
 #pylint: disable=too-many-arguments
