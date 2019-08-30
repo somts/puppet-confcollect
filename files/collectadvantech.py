@@ -64,7 +64,7 @@ def cfgworker(host, loglevel,
         # UnicodeEncodeError: 'ascii' codec can't encode character u'\x84'
         # in position 2594: ordinal not in range(128)
         # ...from the Healy CLAB1/CLAB2 devices.  Not sure why.
-        with open(fname, 'w') as myfile:
+        with open(fname, 'wb') as myfile:
             myfile.write(response.text.encode('utf-8'))
 
         logger.debug('conf data saved to %s.', fname)
