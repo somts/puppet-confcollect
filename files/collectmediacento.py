@@ -43,17 +43,22 @@ def cfgworker(host, loglevel,
     try:
         tel = Telnet(host, port)
 
-        tel.read_until('login: ', timeout)
-        tel.write("%s\n" % username)
 
-        tel.read_until('#', timeout)
+        tel.read_until('login: '.encode('utf-8'), timeout)
+        cmd = "%s\n" % username
+        tel.write(cmd.encode('utf-8'))
+
+        tel.read_until('#'.encode('utf-8'), timeout)
 
         # Get the current config
-        tel.write("%s\n" % remote_cmd)
-        astparams = tel.read_until('#', timeout)
+        cmd = "%s\n" % remote_cmd
+        tel.write(cmd.encode('utf-8'))
+        astparams = tel.read_until('#'.encode('utf-8'), timeout).decode()
+        logger.info('hi')
 
         # Close telnet session.
         tel.close()
+
 
         # Write data, eliminating:
         # 1) The 0th line -- this is the command we issued
