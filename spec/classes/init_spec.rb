@@ -172,12 +172,12 @@ describe 'confcollect' do
     it_behaves_like 'Supported Platform'
   end
 
-  on_supported_os.each do |os, facts|
+  on_supported_os.each do |os, os_facts|
     context "on #{os}" do
       let :facts do
-        facts
+        os_facts
       end
-      case facts[:osfamily]
+      case os_facts[:osfamily]
       when 'Debian' then it_behaves_like 'Debian'
       when 'RedHat' then it_behaves_like 'RedHat'
       else it_behaves_like 'Unsupported Platform'
