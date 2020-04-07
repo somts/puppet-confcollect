@@ -44,7 +44,7 @@ def cfgworker(host, loglevel,
     if os.path.isfile(local_filename):
         mdays = (time.time() - os.stat(local_filename)[stat.ST_MTIME])/86400.
     else:
-        mdays = 0
+        mdays = delay_days + 1
 
     # Do nothing if our config has been collected "recently enough"
     if delay_days < mdays:
