@@ -7,4 +7,4 @@
 . <%= $confcollect::_python_pyvenv %>/bin/activate && \
   python <%= $confcollect::_python_pyvenv %>/getconfs.py \
    --json=<%= $confcollect::_homedir %>/etc/getconfs.json \
-   --git
+   --git 2>/dev/null
