@@ -26,6 +26,7 @@ sys.path.append(path.join(path.dirname(path.dirname(path.abspath(__file__))),
                           'python'))
 import collectadvantech
 import collectmediacento
+import collectpeplink
 import collectqflex
 import collectscp
 import collectssh
@@ -78,6 +79,10 @@ def worker_wrapper(arg):
         return collectadvantech.cfgworker(*args, **kwargs)
 
     elif kwargs['device_type'] == 'mediacento':
+        kwargs.pop('device_type', None) # remove device_type from kwargs
+        return collectmediacento.cfgworker(*args, **kwargs)
+
+    elif kwargs['device_type'] == 'peplink':
         kwargs.pop('device_type', None) # remove device_type from kwargs
         return collectmediacento.cfgworker(*args, **kwargs)
 
