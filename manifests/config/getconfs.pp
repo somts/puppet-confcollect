@@ -46,6 +46,9 @@ class confcollect::config::getconfs(
     "${confcollect::_python_pyvenv}/collectmediacento.py" => {
       source => 'puppet:///modules/confcollect/collectmediacento.py',
     },
+    "${confcollect::_python_pyvenv}/collectpeplink.py" => {
+      source => 'puppet:///modules/confcollect/collectpeplink.py',
+    },
     # docs.netgate.com/pfsense/en/latest/usermanager/accessing-the-firewall-filesystem-with-scp.html
     "${confcollect::_python_pyvenv}/collectpfsense.py"    => {
       ensure => 'absent', # use SCP
