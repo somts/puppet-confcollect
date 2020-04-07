@@ -47,7 +47,7 @@ def cfgworker(host, loglevel,
         mdays = delay_days + 1
 
     # Do nothing if our config has been collected "recently enough"
-    if delay_days < mdays:
+    if delay_days > mdays:
         logger.info('%s was modified ' % local_filename + \
                     '%i days ago, which is more recently than ' % mdays + \
                     'delay_days value of %i. Doing nothing' % delay_days)
