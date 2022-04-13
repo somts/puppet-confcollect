@@ -10,17 +10,16 @@ class confcollect::install {
 
   if $confcollect::python_parameterized {
     class { 'python':
-      ensure     => 'present',
-      version    => $confcollect::python_version,
-      dev        => 'present',
-      virtualenv => 'absent', # use Python 3's built-in, pyvenv instead
-      require    => [Class['git'],Package[$confcollect::packages]],
+      ensure  => 'present',
+      version => $confcollect::python_version,
+      dev     => 'present',
+      require => [Class['git'],Package[$confcollect::packages]],
     }
     Python::Pyvenv { version => $confcollect::python_version }
   } else {
     # We may want to avoid paramterizing puppet-python, in which case
     # some of the above parameters should be set in the control repo.
-    include python
+    include 'python'
   }
 
   python::pyvenv { $confcollect::_python_pyvenv :
