@@ -18,8 +18,10 @@ class confcollect::config::repo {
   # MANAGED RESOURCES
 
   $confcollect::repos.each |String $dir, Hash $settings| {
-    git::config { 'safe.directory':
+    git::config { "${confcollect::_repobasedir}/${dir}":
+      key   => 'safe.directory',
       value => "${confcollect::_repobasedir}/${dir}",
+      scope => system,
     }->
     vcsrepo { "${confcollect::_repobasedir}/${dir}":
       * => $repo_defaults + $settings
