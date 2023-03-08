@@ -13,16 +13,19 @@ class confcollect::config::repo {
     user     => $confcollect::owner,
     owner    => $confcollect::owner,
     group    => $confcollect::group,
+    require  => Git::Config['safe.directory'],
   }
 
   # MANAGED RESOURCES
+  
+  # WORKAROUND: we need a way to specify multiple safe dirs but Git and
+  # Puppet do not want to play nice together at this time
+  git::config { 'safe.directory':
+    value => '*', 
+    scope => system,
+  }
 
   $confcollect::repos.each |String $dir, Hash $settings| {
-    git::config { "${confcollect::_repobasedir}/${dir}":
-      key   => 'safe.directory',
-      value => "${confcollect::_repobasedir}/${dir}",
-      scope => system,
-    }->
     vcsrepo { "${confcollect::_repobasedir}/${dir}":
       * => $repo_defaults + $settings
     }
