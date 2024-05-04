@@ -14,7 +14,7 @@ from urllib.parse import urlencode
 
 from somtsfilelog import setup_logger
 
-#pylint: disable=inconsistent-return-statements
+
 def get_csrf_magic(mystr):
     '''Take a string of pfSense WUI data and extract the CSRF token'''
     objects = mystr.split()
@@ -25,10 +25,8 @@ def get_csrf_magic(mystr):
 
             # return the string between quotes
             return csrf[csrf.find('"')+1:-1]
-#pylint: enable=inconsistent-return-statements
 
-#pylint: disable=too-many-arguments
-#pylint: disable=too-many-locals
+
 def cfgworker(host, loglevel,
               port=443,
               username='admin',
@@ -37,7 +35,7 @@ def cfgworker(host, loglevel,
               log_dir='/tmp',
               tries=3,
               timeout=300
-             ):
+              ):
     '''Login to pfSense with wget and return XML data'''
 
     # Set up variables
@@ -120,5 +118,3 @@ def cfgworker(host, loglevel,
 
     logger.debug('XML data saved to %s.', fname)
     logger.info('END %s', host)
-#pylint: enable=too-many-arguments
-#pylint: enable=too-many-locals

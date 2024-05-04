@@ -9,14 +9,14 @@ import requests
 
 from somtsfilelog import setup_logger
 
-#pylint: disable=too-many-arguments
+
 def cfgworker(host, loglevel,
               port=80,
               username=None,
               password=None,
               destination_dir='/tmp',
               log_dir='/tmp',
-             ):
+              ):
     '''Login to Advantech and return conf data'''
 
     # Different firmwares have different functions...
@@ -34,7 +34,6 @@ def cfgworker(host, loglevel,
 
     if username is None and password is None:
         # Out of the box, there seems to be no password Advantechs
-        #pylint: disable-msg=broad-except
         try:
             response = requests.get(url1, timeout=(18.5, 90.5))
 
@@ -49,7 +48,6 @@ def cfgworker(host, loglevel,
             logger.info('Error with %s: "%s".', host, err)
         except Exception as err:
             logger.error('Unexpected error with %s: %s', host, err)
-        #pylint: enable-msg=broad-except
     else:
         logger.warning('username/password unsupported for collectadvnatech')
 
@@ -70,4 +68,3 @@ def cfgworker(host, loglevel,
         logger.debug('conf data saved to %s.', fname)
 
     logger.info('END %s', host)
-#pylint: enable=too-many-arguments

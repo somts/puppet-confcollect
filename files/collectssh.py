@@ -12,8 +12,7 @@ from netmiko.ssh_exception import NetMikoTimeoutException
 
 from somtsfilelog import setup_logger
 
-#pylint: disable-msg=too-many-arguments
-#pylint: disable-msg=too-many-locals
+
 def cfgworker(host, loglevel,
               device_type='cisco_s300',
               username='admin',
@@ -26,7 +25,7 @@ def cfgworker(host, loglevel,
               dest_username=None,
               dest_password=None,
               dest_host=None
-             ):
+              ):
     '''Multiprocessing worker for collectssh'''
 
     logger = setup_logger('collectssh_%s' % host,
@@ -54,7 +53,6 @@ def cfgworker(host, loglevel,
                         (dest_username, dest_password,
                          dest_host, dest_basename)])
 
-    #pylint: disable-msg=broad-except
     try:
         logger.debug('Attempt to connect to host %s, device type %s',
                      host, device_type)
@@ -76,8 +74,5 @@ def cfgworker(host, loglevel,
         logger.error('Error with %s: %s', host, err)
     except Exception as err:
         logger.error('Unexpected error with %s: %s', host, err)
-    #pylint: enable-msg=broad-except
 
     logger.info('END %s', host)
-#pylint: enable-msg=too-many-arguments
-#pylint: enable-msg=too-many-locals

@@ -27,12 +27,15 @@ sys.path.append(path.join(path.dirname(path.dirname(path.abspath(__file__))),
 import collectadvantech
 import collectmediacento
 import collectpeplink
+import collectpfsense
 import collectqflex
 import collectscp
 import collectssh
+import collectsshcmd
 from gitcheck import git_check_add_commit_pull_push
 from somtsfilelog import setup_logger
 #pylint: enable=wrong-import-position
+
 
 def get_arguments():
     '''Get/set command-line options'''
@@ -59,12 +62,15 @@ def get_arguments():
                         help='Number of threads. Default: %i.' % pool_size)
     parser.add_argument('-l', '--logdir', action='store',
                         default=log_dir, dest='log_dir',
-                        help='Log dir to store logs in. Default: %s.' % log_dir)
+                        help='Log dir to store logs in. Default: %s.' % log_dir
+                        )
     parser.add_argument('-j', '--json', action='store',
                         dest='json', default=myjson,
-                        help='.json file to use for config. Default: %s' % json)
+                        help='.json file to use for config. Default: %s' % json
+                        )
 
     return parser.parse_args()
+
 
 def worker_wrapper(arg):
     '''Take structured data and turn it into args and/or kwargs for a
@@ -72,33 +78,34 @@ def worker_wrapper(arg):
     Netmiko, but we also catch specialized cases too.'''
     args, kwargs = arg
 
-    kwargs.pop('repo_dir', None) # remove repo_dir from kwargs
+    kwargs.pop('repo_dir', None)  # remove repo_dir from kwargs
 
     if kwargs['device_type'] == 'advantech':
-        kwargs.pop('device_type', None) # remove device_type from kwargs
+        kwargs.pop('device_type', None)  # remove device_type from kwargs
         return collectadvantech.cfgworker(*args, **kwargs)
 
     elif kwargs['device_type'] == 'mediacento':
-        kwargs.pop('device_type', None) # remove device_type from kwargs
+        kwargs.pop('device_type', None)  # remove device_type from kwargs
         return collectmediacento.cfgworker(*args, **kwargs)
 
     elif kwargs['device_type'] == 'peplink':
-        kwargs.pop('device_type', None) # remove device_type from kwargs
+        kwargs.pop('device_type', None)  # remove device_type from kwargs
         return collectpeplink.cfgworker(*args, **kwargs)
 
     elif kwargs['device_type'] == 'pfsense':
-        kwargs.pop('device_type', None) # remove device_type from kwargs
+        kwargs.pop('device_type', None)  # remove device_type from kwargs
         return collectpfsense.cfgworker(*args, **kwargs)
 
     elif kwargs['device_type'] == 'qflex':
-        kwargs.pop('device_type', None) # remove device_type from kwargs
+        kwargs.pop('device_type', None)  # remove device_type from kwargs
         return collectqflex.cfgworker(*args, **kwargs)
 
-    elif kwargs['device_type'] == 'cisco_s300': # No SCP on Cisco SG-300
+    elif kwargs['device_type'] == 'cisco_s300':  # No SCP on Cisco SG-300
         return collectssh.cfgworker(*args, **kwargs)
 
     # many device_type options for Netmiko SCP, so it is the default
     return collectscp.cfgworker(*args, **kwargs)
+
 
 def main():
     '''Main process'''
@@ -152,8 +159,8 @@ def main():
     # Start fetching all supported configs...
     logger.info('Processing %i jobs...', jobs.__len__())
     pool.map(worker_wrapper, jobs)
-    pool.close() # no more tasks
-    pool.join()  # wrap up current tasks
+    pool.close()  # no more tasks
+    pool.join()   # wrap up current tasks
     logger.info('%i jobs processed.', jobs.__len__())
 
     # Commit any changes after we've attempted to collect everything
@@ -163,6 +170,7 @@ def main():
             git_check_add_commit_pull_push(repo_dir, logger)
         else:
             logger.info('Git checks disabled. Will not process %s', repo_dir)
+
 
 if __name__ == '__main__':
     main()

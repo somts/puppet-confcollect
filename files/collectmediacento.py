@@ -10,7 +10,7 @@ from telnetlib import Telnet
 
 from somtsfilelog import setup_logger
 
-#pylint: disable=too-many-arguments
+
 def cfgworker(host, loglevel,
               port=24,
               username='root',
@@ -20,7 +20,7 @@ def cfgworker(host, loglevel,
               filename_extension='astparam',
               timeout=20,
               local_filename=None
-             ):
+              ):
     '''Speak to a Black Box MediaCento device using telnet on TCP/24
     (not TCP/23), and run `astparam dump` to get its config. Security on
     these things are terrible; username is root and there is no password.
@@ -39,10 +39,8 @@ def cfgworker(host, loglevel,
         local_filename = path.join(path.realpath(destination_dir),
                                    '%s.%s' % (host.split('.')[0],
                                               filename_extension))
-    #pylint: disable-msg=broad-except
     try:
         tel = Telnet(host, port)
-
 
         tel.read_until('login: '.encode('utf-8'), timeout)
         cmd = "%s\n" % username
@@ -59,7 +57,6 @@ def cfgworker(host, loglevel,
         # Close telnet session.
         tel.close()
 
-
         # Write data, eliminating:
         # 1) The 0th line -- this is the command we issued
         # 2) The last line -- this is the command prompt we waited for
@@ -74,7 +71,5 @@ def cfgworker(host, loglevel,
     except Exception as err:
         logger.error('Unexpected error with %s: %s', host, err)
         return
-    #pylint: enable-msg=broad-except
 
     logger.info('END %s', host)
-#pylint: enable=too-many-arguments

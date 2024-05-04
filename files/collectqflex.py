@@ -19,6 +19,7 @@ from paramiko.ssh_exception import SSHException
 
 from somtsfilelog import setup_logger
 
+
 def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
     '''Login to a Netmiko service, save output of a command.
        filecmddict is a dict: key = filename, value = command.
@@ -28,7 +29,7 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
                                nm_kwargs['device_type'])
 
     logger.info('Connect to %s', hostinfo)
-    #pylint: disable-msg=broad-except
+
     try:
         with ConnectHandler(**nm_kwargs) as net_connect:
             if enable:
@@ -39,10 +40,10 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
                 logger.debug('Sending command "%s" to %s', cmd, hostinfo)
                 output = net_connect.send_command(cmd)
 
-                if cmd == 'getcurrentconfig': # uu decode this text
+                if cmd == 'getcurrentconfig':  # uu decode this text
                     output = uu_to_modemconfig(output)
 
-                elif cmd == 'getcurrent': # sanity-check this text
+                elif cmd == 'getcurrent':  # sanity-check this text
                     output = check_getcurrent(output, logger)
 
                 logger.debug('Received output from command "%s" from %s',
@@ -56,8 +57,9 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
                                  'Data has bad ending.',
                                  hostinfo, fname)
                 elif not output:
-                    logger.error('Unsaved output from %s to %s. Data is empty.',
-                                 hostinfo, fname)
+                    logger.error(
+                            'Unsaved output from %s to %s. Data is empty.',
+                            hostinfo, fname)
                 else:
                     with open(fname, 'w') as filep:
                         filep.write(output)
@@ -70,7 +72,7 @@ def get_qflex_data(filecmddict, nm_kwargs, logger, enable=False, ending=None):
         logger.info('Error with %s: "%s".', hostinfo, err)
     except Exception as err:
         logger.error('Unexpected error with %s: %s', hostinfo, err)
-    #pylint: enable-msg=broad-except
+
 
 def check_getcurrent(text, logger):
     ''' We expect a bunch of lines that are essentially key=value\n.
@@ -86,6 +88,7 @@ def check_getcurrent(text, logger):
         return None
 
     return text
+
 
 def uu_to_modemconfig(uustr):
     '''Take UUEncoded tar.gz data in the form of a string, return the
@@ -116,8 +119,7 @@ def uu_to_modemconfig(uustr):
                 modemconfig = filep.read().decode()  # decode to ascii
     return modemconfig
 
-#pylint: disable=too-many-arguments
-#pylint: disable=too-many-locals
+
 def cfgworker(host, loglevel,
               device_type='linux',
               port=22,
@@ -127,9 +129,9 @@ def cfgworker(host, loglevel,
               quagga_ports=None,
               destination_dir='staging',
               log_dir='/tmp',
-              global_delay_factor=10, # slow for Q-flex
-              blocking_timeout=60,    # slow for Q-flex
-             ):
+              global_delay_factor=10,  # slow for Q-flex
+              blocking_timeout=60,     # slow for Q-flex
+              ):
     '''Speak to a Teledyne Paradise Q-flex modem using Paradise
     Universal Protocol (PUP). From this, we collect:
     1. Number/Value text data
@@ -182,14 +184,11 @@ def cfgworker(host, loglevel,
                         'port': qport,
                         'secret': quagga_password})
             get_qflex_data({os.path.join(destdir, 'quagga',
-                                         '.'.join((bname, qname, 'conf'))): \
-                                             'show running-config',
-                           },
+                                         '.'.join((bname, qname, 'conf'))):
+                                             'show running-config'},
                            myd,
                            logger,
                            enable=True,
                            ending='end')
 
     logger.info('END %s', host)
-#pylint: enable=too-many-locals
-#pylint: enable=too-many-arguments

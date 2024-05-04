@@ -13,8 +13,7 @@ from scp import SCPException
 
 from somtsfilelog import setup_logger
 
-#pylint: disable-msg=too-many-arguments
-#pylint: disable-msg=too-many-locals
+
 def cfgworker(host, loglevel,
               device_type='cisco_ios',
               username='admin',
@@ -25,7 +24,7 @@ def cfgworker(host, loglevel,
               filename_extension='cfg',
               local_filename=None,
               sort=False
-             ):
+              ):
     '''Multiprocessing worker for get_cfg()'''
 
     logger = setup_logger('collectscp_%s' % host,
@@ -38,7 +37,6 @@ def cfgworker(host, loglevel,
                                    '%s.%s' % (host.split('.')[0],
                                               filename_extension))
 
-    #pylint: disable-msg=broad-except
     try:
         logger.debug('Attempt to SSH to host %s, device type %s',
                      host, device_type)
@@ -62,10 +60,10 @@ def cfgworker(host, loglevel,
                 if sort:
                     logger.info('Sorting contents of %s', local_filename)
                     with open(local_filename, 'r+') as filep:
-                        sortf = sorted(filep)   # sort file
-                        filep.seek(0)           # goto start of file
-                        filep.writelines(sortf) # overwrite
-                        filep.truncate()        # cut off any remainder
+                        sortf = sorted(filep)    # sort file
+                        filep.seek(0)            # goto start of file
+                        filep.writelines(sortf)  # overwrite
+                        filep.truncate()         # cut off any remainder
             except (EOFError, SCPException, SSHException) as err:
                 logger.error('Error with %s: %s', host, err)
             except Exception as err:
@@ -78,8 +76,5 @@ def cfgworker(host, loglevel,
         logger.error('Error with %s: %s', host, err)
     except Exception as err:
         logger.error('Unexpected error with %s: %s', host, err)
-    #pylint: enable-msg=broad-except
 
     logger.info('END %s', host)
-#pylint: enable-msg=too-many-locals
-#pylint: enable-msg=too-many-arguments

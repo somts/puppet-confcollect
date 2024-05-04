@@ -11,8 +11,7 @@ import requests
 
 from somtsfilelog import setup_logger
 
-#pylint: disable=too-many-arguments
-#pylint: disable=too-many-locals
+
 def cfgworker(host, loglevel,
               port=443,
               username='admin',
@@ -23,11 +22,12 @@ def cfgworker(host, loglevel,
               timeout=60,
               delay_days=90,
               local_filename=None
-             ):
+              ):
     '''Speak to a Peplink WUI using requests on TCP/443'''
 
     logger = setup_logger('collectpeplink_%s' % host,
-                          os.path.join(log_dir, 'collectpeplink.%s.log' % host),
+                          os.path.join(log_dir,
+                                       'collectpeplink.%s.log' % host),
                           level=loglevel)
 
     if local_filename is None:
@@ -48,8 +48,8 @@ def cfgworker(host, loglevel,
 
     # Do nothing if our config has been collected "recently enough"
     if delay_days > mdays:
-        logger.info('%s was modified ' % local_filename + \
-                    '%i days ago, which is more recently than ' % mdays + \
+        logger.info('%s was modified ' % local_filename +
+                    '%i days ago, which is more recently than ' % mdays +
                     'delay_days value of %i. Doing nothing' % delay_days)
 
     # Collect config and save to our repo
@@ -57,7 +57,7 @@ def cfgworker(host, loglevel,
         try:
             with requests.Session() as session:
                 session.timeout = timeout
-                session.verify = False # complain about,but ignore cert errors
+                session.verify = False  # complain about,but ignore cert errors
                 login = session.post(baseurl + 'api.cgi', data=postdata)
                 if login.status_code == 200:
                     config = session.get(baseurl + 'download_config.cgi')
@@ -68,12 +68,8 @@ def cfgworker(host, loglevel,
 
             logger.info('%s saved to disk', local_filename)
 
-        #pylint: disable-msg=broad-except
         except Exception as err:
             logger.error('Unexpected error with %s: %s', host, err)
             return
-        #pylint: enable-msg=broad-except
 
     logger.info('END %s', host)
-#pylint: enable=too-many-locals
-#pylint: enable=too-many-arguments
