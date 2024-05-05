@@ -63,6 +63,9 @@ class confcollect::config::getconfs(
     "${confcollect::_python_pyvenv}/collectssh.py"        => {
       source => 'puppet:///modules/confcollect/collectssh.py',
     },
+    "${confcollect::_python_pyvenv}/collectsshcmd.py"        => {
+      source => 'puppet:///modules/confcollect/collectsshcmd.py',
+    },
     "${confcollect::_python_pyvenv}/gitcheck.py"          => {
         source  => 'puppet:///modules/confcollect/gitcheck.py',
     },
