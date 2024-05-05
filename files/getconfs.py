@@ -103,6 +103,14 @@ def worker_wrapper(arg):
     elif kwargs['device_type'] == 'cisco_s300':  # No SCP on Cisco SG-300
         return collectssh.cfgworker(*args, **kwargs)
 
+    elif kwargs['device_type'].endswith('sshcmd'):  # Use collectsshcmd
+        if kwargs['device_type'] == 'sshcmd':
+            kwargs.pop('device_type', None)  # remove device_type from kwargs
+        else:
+            # remove sshcmd from the end of the string
+            kwargs['device_type'] = kwargs['device_type'][:-6]
+        return collectsshcmd.cfgworker(*args, **kwargs)
+
     # many device_type options for Netmiko SCP, so it is the default
     return collectscp.cfgworker(*args, **kwargs)
 
