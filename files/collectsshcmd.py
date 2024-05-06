@@ -49,7 +49,7 @@ def cfgworker(host, loglevel,
 
         # Open up a temporary file to write to. Don't want to overwite
         # partial sessions onto the production file
-        with NamedTemporaryFile(delete_on_close=False) as filep:
+        with NamedTemporaryFile(delete=False) as filep:
             logger.debug('Opened %s for caching.', filep.name)
 
             # Connect to our device
@@ -65,7 +65,7 @@ def cfgworker(host, loglevel,
                     logger.debug('Sending command, "%s"...', command)
                     out = net_connect.send_command(command)
                     logger.debug(out)
-                    filep.write(out)
+                    filep.write(str.encode(f"# {command}\n{out}\n\n"))
                     del out
             filep.close()
 

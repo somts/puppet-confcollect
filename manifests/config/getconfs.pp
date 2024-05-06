@@ -51,7 +51,7 @@ class confcollect::config::getconfs(
     },
     # docs.netgate.com/pfsense/en/latest/usermanager/accessing-the-firewall-filesystem-with-scp.html
     "${confcollect::_python_pyvenv}/collectpfsense.py"    => {
-      ensure => 'absent', # use SCP
+      ensure => 'present',  # but use SCP
       source => 'puppet:///modules/confcollect/collectpfsense.py',
     },
     "${confcollect::_python_pyvenv}/collectqflex.py"      => {
