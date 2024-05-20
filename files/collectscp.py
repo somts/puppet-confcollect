@@ -23,6 +23,9 @@ def cfgworker(host, loglevel,
               log_dir='/tmp',
               filename_extension='cfg',
               local_filename=None,
+              hostname=None,
+              preserve_times=False,
+              recursive=False,
               sort=False
               ):
     '''Multiprocessing worker for get_cfg()'''
@@ -32,9 +35,12 @@ def cfgworker(host, loglevel,
                           level=loglevel)
     logger.info('BEGIN %s', host)
 
+    if hostname is None:
+        hostname = host
+
     if local_filename is None:
         local_filename = path.join(path.realpath(destination_dir),
-                                   '%s.%s' % (host.split('.')[0],
+                                   '%s.%s' % (hostname.split('.')[0],
                                               filename_extension))
 
     try:
@@ -48,7 +54,9 @@ def cfgworker(host, loglevel,
             logger.debug('Attempt to connect via SCP...')
             try:
                 scp_conn = SCPConn(net_connect)
-                scp_conn.scp_get_file(remote_filename, local_filename)
+                scp_conn.scp_client.get(remote_filename, local_filename,
+                                        recursive=recursive,
+                                        preserve_times=preserve_times)
                 logger.info('Config for %s:%s transferred successfully to %s.',
                             host, remote_filename, local_filename)
                 scp_conn.close()
