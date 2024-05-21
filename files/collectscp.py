@@ -43,8 +43,11 @@ def cfgworker(host, loglevel,
     destp = Path(destination_dir).absolute()
 
     if local_filename is None:
-        local_filename = destp.joinpath('%s.%s' % (hostname.split('.')[0],
-                                                   filename_extension))
+        if recursive:  # ignore extension in recursive mode
+            local_filename = destp.joinpath(hostname.split('.')[0])
+        else:
+            local_filename = destp.joinpath('%s.%s' % (hostname.split('.')[0],
+                                                       filename_extension))
     else:
         # ignore destination_dir when local_filename is provided
         # ... unless local_filename is relative
