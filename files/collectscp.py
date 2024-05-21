@@ -4,7 +4,7 @@
     Config grabber via Netmiko/SCP. Used to keep various
     SSH/SCP-capable config file(s) up-to-date from various locations.'''
 
-from os import path
+from pathlib import Path
 from netmiko import ConnectHandler, SCPConn
 from netmiko.ssh_exception import NetMikoTimeoutException
 from netmiko.ssh_exception import NetMikoAuthenticationException
@@ -30,18 +30,35 @@ def cfgworker(host, loglevel,
               ):
     '''Multiprocessing worker for get_cfg()'''
 
-    logger = setup_logger('collectscp_%s' % host,
-                          path.join(log_dir, 'collectscp.%s.log' % host),
-                          level=loglevel)
+    # host and hostname are the same thing unless overridden
+    hostname = host if hostname is None else hostname
+
+    logger = setup_logger(
+            f'collectscp_{hostname}',
+            Path(log_dir).joinpath(f'collectscp.{hostname}.log'),
+            level=loglevel)
+
     logger.info('BEGIN %s', host)
 
-    if hostname is None:
-        hostname = host
+    destp = Path(destination_dir).absolute()
 
     if local_filename is None:
-        local_filename = path.join(path.realpath(destination_dir),
-                                   '%s.%s' % (hostname.split('.')[0],
-                                              filename_extension))
+        local_filename = destp.joinpath('%s.%s' % (hostname.split('.')[0],
+                                                   filename_extension))
+    else:
+        # ignore destination_dir when local_filename is provided
+        # ... unless local_filename is relative
+        if not Path(local_filename).is_absolute():
+            local_filename = destp.joinpath(local_filename)
+
+        destp = Path(local_filename).parent()
+
+    try:  # Attempt to ensure dir exists
+        destp.mkdir(parents=True, exist_ok=True)
+    except (FileNotFoundError, PermissionError) as err:
+        logger.error('Error with target dir %s: %s', destp, err)
+    except Exception as err:
+        logger.error('Unexpected error with target dir %s: %s', destp, err)
 
     try:
         logger.debug('Attempt to SSH to host %s, device type %s',
@@ -65,7 +82,7 @@ def cfgworker(host, loglevel,
                 # which makes some of the changes we track not very
                 # helpful. So, we offer a way to sort the file lines
                 # to work around issues like that.
-                if sort:
+                if sort and not recursive:
                     logger.info('Sorting contents of %s', local_filename)
                     with open(local_filename, 'r+') as filep:
                         sortf = sorted(filep)    # sort file
