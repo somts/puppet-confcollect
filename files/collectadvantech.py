@@ -49,7 +49,7 @@ def cfgworker(host, loglevel,
         except Exception as err:
             logger.error('Unexpected error with %s: %s', host, err)
     else:
-        logger.warning('username/password unsupported for collectadvnatech')
+        logger.warning('username/password unsupported for collectadvantech')
 
     logger.debug('Done talking to %s.', url)
 
