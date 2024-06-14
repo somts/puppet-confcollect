@@ -20,13 +20,13 @@ from pprint import pformat
 import json
 
 # Import custom libs from ../lib/python, relative to this file...
-#pylint: disable=wrong-import-position
 sys.path.append(path.join(path.dirname(path.dirname(path.abspath(__file__))),
                           'lib',
                           'python'))
 import collectadvantech
 import collectmediacento
 import collectpeplink
+import collectpepperlfuchs
 import collectpfsense
 import collectqflex
 import collectscp
@@ -34,7 +34,6 @@ import collectssh
 import collectsshcmd
 from gitcheck import git_check_add_commit_pull_push
 from somtsfilelog import setup_logger
-#pylint: enable=wrong-import-position
 
 
 def get_arguments():
@@ -91,6 +90,10 @@ def worker_wrapper(arg):
     elif kwargs['device_type'] == 'peplink':
         kwargs.pop('device_type', None)  # remove device_type from kwargs
         return collectpeplink.cfgworker(*args, **kwargs)
+
+    if kwargs['device_type'] == 'pepperlfuchs':
+        kwargs.pop('device_type', None)  # remove device_type from kwargs
+        return collectpepperlfuchs.cfgworker(*args, **kwargs)
 
     elif kwargs['device_type'] == 'pfsense':
         kwargs.pop('device_type', None)  # remove device_type from kwargs
