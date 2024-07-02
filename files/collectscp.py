@@ -49,12 +49,16 @@ def cfgworker(host, loglevel,
             local_filename = destp.joinpath('%s.%s' % (hostname.split('.')[0],
                                                        filename_extension))
     else:
+        # Cast strings to Path() when provided to function
+        if type(local_filename) is str:
+            local_filename = Path(local_filename)
+
         # ignore destination_dir when local_filename is provided
         # ... unless local_filename is relative
         if not Path(local_filename).is_absolute():
             local_filename = destp.joinpath(local_filename)
 
-        destp = Path(local_filename).parent()
+        destp = local_filename.parent()
 
     try:  # Attempt to ensure dir exists
         destp.mkdir(parents=True, exist_ok=True)
